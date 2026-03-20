@@ -18,7 +18,7 @@ class HighLevelMultiplication extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('High Level Multiplication'), // タイトルを変更
+        title: const Text('上級の掛け算'), // タイトルを変更
       ),
       body: Center(
         child: HighLevelMultiplicationBrain( // Brainも名前を合わせる

@@ -15,7 +15,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Flutter Demo Home Page'),
+        title: const Text('100マス計算練習'),
       ),
       body: Center(
         child: Column(
@@ -30,7 +30,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 );
               },
-              child: const Text('Let\'s Practice!'),
+              child: const Text('100マス計算をする'),
             ),
             ElevatedButton(
               onPressed: () {
@@ -39,7 +39,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   MaterialPageRoute(builder: (context) => const RecordScreen()),
                 );
               },
-              child: const Text('Check Your Progress!'),
+              child: const Text('記録を見る'),
             ),
           ],
         ),

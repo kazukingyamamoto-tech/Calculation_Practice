@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'Timer.dart';
 import 'ResultScreen.dart';
 
-class OrdinaryMultiplication extends StatelessWidget {
+class TemplateMultiplication extends StatelessWidget {
   final int rowMin, rowMax, colMin, colMax;
+  final String mode;
 
-  const OrdinaryMultiplication({
+  const TemplateMultiplication({
     super.key,
     required this.rowMin,
     required this.rowMax,
     required this.colMin,
     required this.colMax,
+    required this.mode,
   });
 
   @override
@@ -18,37 +20,40 @@ class OrdinaryMultiplication extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Ordinary Multiplication'),
+        title: Text(mode),
       ),
       body: Center(
-        child: OrdinaryMultiplicationBrain(
+        child: TemplateMultiplicationBrain(
           rowMin: rowMin,
           rowMax: rowMax,
           colMin: colMin,
           colMax: colMax,
+          mode: mode,
         ),
       ),
     );
   }
 }
 
-class OrdinaryMultiplicationBrain extends StatefulWidget {
+class TemplateMultiplicationBrain extends StatefulWidget {
   final int rowMin, rowMax, colMin, colMax;
-  const OrdinaryMultiplicationBrain({
+  final String mode;
+  const TemplateMultiplicationBrain({
     super.key,
     required this.rowMin,
     required this.rowMax,
     required this.colMin,
     required this.colMax,
+    required this.mode,
   });
 
   @override
-  State<OrdinaryMultiplicationBrain> createState() =>
-      _OrdinaryMultiplicationBrainState();
+  State<TemplateMultiplicationBrain> createState() =>
+      _TemplateMultiplicationBrainState();
 }
 
-class _OrdinaryMultiplicationBrainState
-    extends State<OrdinaryMultiplicationBrain> {
+class _TemplateMultiplicationBrainState
+    extends State<TemplateMultiplicationBrain> {
   late List<int> rowNumbers;
   late List<int> colNumbers;
   bool _showAnswers = false;
@@ -82,7 +87,7 @@ class _OrdinaryMultiplicationBrainState
       context,
       MaterialPageRoute(
         builder: (context) => ResultScreen(
-          mode: "普通の掛け算",
+          mode: widget.mode,
           timeTaken: Duration(
             seconds:
                 int.parse(resTime.split(':')[0]) * 60 +

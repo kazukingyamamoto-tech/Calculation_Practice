@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'PracticePrepareScreen.dart';
+import 'practiceCreateBrain.dart';
 
 class SelectModeScreen extends StatefulWidget {
   const SelectModeScreen({super.key});
@@ -14,7 +14,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Select Mode'),
+        title: const Text('計算の種類を選ぶ'),
       ),
       body: Center(
         child: Column(
@@ -41,6 +41,16 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
                 );
               },
               child: const Text('上級の掛け算'),
+            ),ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TopLevelMultiplication(),
+                  ),
+                );
+              },
+              child: const Text('超上級の掛け算'),
             ),
             // ElevatedButton(
             //   onPressed: () {
@@ -96,7 +106,7 @@ class _OrdinaryMultiplicationState extends State<OrdinaryMultiplication> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Ordinary Multiplication'),
+        title: const Text('普通の掛け算'),
       ),
       body: Center(
         child: Column(
@@ -123,12 +133,39 @@ class _HighLevelMultiplicationState extends State<HighLevelMultiplication> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('High Level Multiplication'),
+        title: const Text('上級の掛け算'),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [HighLevelMultiplicationPrepare()],
+        ),
+      ),
+    );
+  }
+}
+
+// // TopLevelMultiplication.dart
+class TopLevelMultiplication extends StatefulWidget {
+  const TopLevelMultiplication({super.key});
+
+  @override
+  State<TopLevelMultiplication> createState() =>
+      _TopLevelMultiplicationState();
+}
+
+class _TopLevelMultiplicationState extends State<TopLevelMultiplication> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: const Text('超上級の掛け算'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [TopLevelMultiplicationPrepare()],
         ),
       ),
     );
