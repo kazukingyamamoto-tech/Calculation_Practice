@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
-import 'Timer.dart';
-import 'ResultScreen.dart';
+import 'dart:math'; // ★ 追加：ランダム判定用
+import 'timer.dart';
+import '../screen/resultScreen.dart';
+import 'calculateAnswerLogic.dart';
 
-class HighLevelMultiplication extends StatelessWidget {
+class TemplateMultiplication extends StatelessWidget {
   final int rowMin, rowMax, colMin, colMax;
+  final String mode;
 
-  const HighLevelMultiplication({
+  const TemplateMultiplication({
     super.key,
     required this.rowMin,
     required this.rowMax,
     required this.colMin,
     required this.colMax,
+    required this.mode,
   });
 
   @override
@@ -18,39 +22,48 @@ class HighLevelMultiplication extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('上級の掛け算'), // タイトルを変更
+        title: Text(mode),
       ),
       body: Center(
-        child: HighLevelMultiplicationBrain( // Brainも名前を合わせる
+        child: TemplateMultiplicationBrain(
           rowMin: rowMin,
           rowMax: rowMax,
           colMin: colMin,
           colMax: colMax,
+          mode: mode,
+          calculateAnswer: calculateAnswer,
         ),
       ),
     );
   }
 }
 
-class HighLevelMultiplicationBrain extends StatefulWidget {
+class TemplateMultiplicationBrain extends StatefulWidget {
   final int rowMin, rowMax, colMin, colMax;
-  const HighLevelMultiplicationBrain({
+  final String mode;
+  // ★ 修正：int ではなく AxisItem を受け取る関数にする
+  final String Function(AxisItem, AxisItem, String) calculateAnswer;
+  
+  const TemplateMultiplicationBrain({
     super.key,
     required this.rowMin,
     required this.rowMax,
     required this.colMin,
     required this.colMax,
+    required this.mode,
+    required this.calculateAnswer,
   });
 
   @override
-  State<HighLevelMultiplicationBrain> createState() =>
-      _HighLevelMultiplicationBrainState();
+  State<TemplateMultiplicationBrain> createState() =>
+      _TemplateMultiplicationBrainState();
 }
 
-class _HighLevelMultiplicationBrainState
-    extends State<HighLevelMultiplicationBrain> {
-  late List<int> rowNumbers;
-  late List<int> colNumbers;
+class _TemplateMultiplicationBrainState extends State<TemplateMultiplicationBrain> {
+  // ★ 修正：int ではなく AxisItem のリストにする
+  late List<AxisItem> rowNumbers;
+  late List<AxisItem> colNumbers;
+  
   bool _showAnswers = false;
   bool _isStarted = false;
   bool _isFinished = false;
@@ -81,9 +94,10 @@ class _HighLevelMultiplicationBrainState
       context,
       MaterialPageRoute(
         builder: (context) => ResultScreen(
-          mode: "上級の掛け算",
+          mode: widget.mode,
           timeTaken: Duration(
-            seconds: int.parse(resTime.split(':')[0]) * 60 +
+            seconds:
+                int.parse(resTime.split(':')[0]) * 60 +
                 int.parse(resTime.split(':')[1]),
           ),
         ),
@@ -92,14 +106,32 @@ class _HighLevelMultiplicationBrainState
   }
 
   void _generateNumbers() {
-    List<int> rowRange = [for (int i = widget.rowMin; i <= widget.rowMax; i++) i];
-    List<int> colRange = [for (int i = widget.colMin; i <= widget.colMax; i++) i];
+    List<int> rowRange = [
+      for (int i = widget.rowMin; i <= widget.rowMax; i++) i,
+    ];
+    List<int> colRange = [
+      for (int i = widget.colMin; i <= widget.colMax; i++) i,
+    ];
     rowRange.shuffle();
     colRange.shuffle();
-    rowNumbers = rowRange.take(10).toList();
-    colNumbers = colRange.take(10).toList();
-  }
 
+    final random = Random(); // ランダム生成器
+
+    // ★ 横の数字はそのまま（演算子なし）で AxisItem にする
+    rowNumbers = rowRange.take(10).map((n) {
+      return AxisItem(number: n);
+    }).toList();
+
+    // ★ 縦の数字は、モードによって演算子をくっつけて AxisItem にする
+    colNumbers = colRange.take(10).map((n) {
+      String op = "";
+      if (widget.mode.contains("ミックス")) {
+        // ミックスモードなら、50%の確率で × か ÷ を割り当てる
+        op = random.nextBool() ? "×" : "÷";
+      }
+      return AxisItem(number: n, operator: op);
+    }).toList();
+  }
 
   Widget _buildCalculationUI() {
     return SingleChildScrollView(
@@ -107,19 +139,20 @@ class _HighLevelMultiplicationBrainState
       child: Column(
         children: [
           Table(
-            border: TableBorder.all(color: Colors.grey), // 枠線
+            border: TableBorder.all(color: Colors.grey),
             children: [
               // --- 1行目（横の数字出し） ---
               TableRow(
                 children: [
                   const Center(),
-                  for (var n in rowNumbers)
+                  for (var rowItem in rowNumbers)
                     Container(
                       height: 40,
                       color: Colors.blue.shade50,
                       child: Center(
+                        // ★ 修正：.displayText を呼び出す
                         child: Text(
-                          "$n",
+                          rowItem.displayText,
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -135,8 +168,9 @@ class _HighLevelMultiplicationBrainState
                       height: 40,
                       color: Colors.orange.shade50,
                       child: Center(
+                        // ★ 修正：.displayText を呼び出す
                         child: Text(
-                          "${colNumbers[i]}",
+                          colNumbers[i].displayText,
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -145,16 +179,20 @@ class _HighLevelMultiplicationBrainState
                     for (int j = 0; j < 10; j++)
                       Container(
                         height: 40,
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
                         alignment: Alignment.center,
-                        child: Text(
-                          _showAnswers
-                              ? "${rowNumbers[j] * colNumbers[i]}"
-                              : "",
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 164, 24, 24),
-                            fontStyle: FontStyle.italic,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            _showAnswers
+                                ? widget.calculateAnswer(rowNumbers[j], colNumbers[i], widget.mode)
+                                : "",
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(255, 164, 24, 24),
+                              fontStyle: FontStyle.italic,
+                            ),
                           ),
                         ),
                       ),
@@ -172,7 +210,7 @@ class _HighLevelMultiplicationBrainState
                   _timer.start();
                 });
               },
-              label: Text("スタート"),
+              label: const Text("スタート"),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 25,
@@ -191,7 +229,7 @@ class _HighLevelMultiplicationBrainState
                         _isFinished = true;
                       });
                     },
-              label: Text("フィニッシュ&答え合わせ"),
+              label: const Text("フィニッシュ&答え合わせ"),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 25,
@@ -203,7 +241,7 @@ class _HighLevelMultiplicationBrainState
           else
             ElevatedButton.icon(
               onPressed: _onResultPressed,
-              label: Text("結果入力へ"),
+              label: const Text("結果入力へ"),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 25,
@@ -218,6 +256,6 @@ class _HighLevelMultiplicationBrainState
 
   @override
   Widget build(BuildContext context) {
-    return _buildCalculationUI(); 
+    return _buildCalculationUI();
   }
 }

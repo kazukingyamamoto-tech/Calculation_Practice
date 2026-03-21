@@ -6,6 +6,7 @@ class CalculationPrepareTemplate extends StatefulWidget {
   final String defaultRowMax;
   final String defaultColMin;
   final String defaultColMax;
+  final String mode;
   final Widget Function(BuildContext, int rMin, int rMax, int cMin, int cMax) destinationBuilder;
 
   const CalculationPrepareTemplate({
@@ -16,6 +17,7 @@ class CalculationPrepareTemplate extends StatefulWidget {
     this.defaultColMin = "1",
     this.defaultRowMax = "10",
     required this.destinationBuilder,
+    required this.mode,
   });
 
   @override
@@ -41,16 +43,48 @@ class _CalculationPrepareTemplateState extends State<CalculationPrepareTemplate>
     int? rMin = int.tryParse(_rowMinCtrl.text);
     int? cMax = int.tryParse(_colMaxCtrl.text);
     int? cMin = int.tryParse(_colMinCtrl.text);
+    String mode = widget.mode;
+
+
 
     if (rMax != null && rMin != null && cMax != null && cMin != null) {
+      if (mode == "最大公約数") {
+        if (rMin < 21 || cMin < 21) {
+          _showSnackBar("横軸の最小値は21以上にしてください");
+          return;
+        }
+      }
+      if (mode == "上級の掛け算") {
+        if (rMin < 10) {
+          _showSnackBar("横軸の最小値は11以上にしてください");
+          return;
+        }
+      }
+      if (mode == "超上級の掛け算") {
+        if (rMin < 100) {
+          _showSnackBar("横軸の最小値は101以上にしてください");
+          return;
+        }
+      }
+      if (mode == "ミックス") {
+        if (rMin < 10) {
+          _showSnackBar("横軸の最小値は11以上にしてください");
+          return;
+        }
+      }
       if (rMax - rMin >= 9 && cMax - cMin >= 9) {
-        // テンプレートなので、具体的な遷移先は widget.destinationBuilder に任せる
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => widget.destinationBuilder(context, rMin, rMax, cMin, cMax),
-          ),
-        );
+        if (rMin < 1 || cMin < 1) {
+          _showSnackBar("最小値は1以上にしてください");
+          return;
+        } else {
+          // テンプレートなので、具体的な遷移先は widget.destinationBuilder に任せる
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => widget.destinationBuilder(context, rMin, rMax, cMin, cMax),
+            ),
+          );
+        }
       } else {
         _showSnackBar("最大値は最小値より9以上大きくしてください");
       }

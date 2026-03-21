@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'homaPage.dart';
+import 'screen/homaPage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: '100マス計算練習(デモ版)',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),

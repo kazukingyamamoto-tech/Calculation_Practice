@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'GameRecord.dart';
+import '../logic/GameRecord.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class RecordScreen extends StatefulWidget {
@@ -62,7 +62,7 @@ class _RecordScreenState extends State<RecordScreen> {
     double totalSec = minutes * 60.0 + seconds;
     
     if (totalSec < 1) return 0; // 0除算エラー防止
-    return r.score / totalSec;
+    return double.parse((r.score / totalSec).toStringAsFixed(3));
   }
 
   Widget _buildFilters() {
@@ -113,18 +113,40 @@ class _RecordScreenState extends State<RecordScreen> {
     List<FlSpot> spots = [];
     for (int i = 0; i < data.length; i++) {
       final r = data[i];
-      // 共通メソッドを使って効率を取得
       double efficiency = _calculateEfficiency(r);
       spots.add(FlSpot(i.toDouble(), efficiency));
     }
 
     return Padding(
-      padding: const EdgeInsets.only(top: 20, right: 20, left: 10),
+      padding: const EdgeInsets.only(top: 15, right: 20, left: 10),
       child: LineChart(
         LineChartData(
           gridData: FlGridData(show: true, drawVerticalLine: false),
+          lineTouchData: LineTouchData(
+            touchTooltipData: LineTouchTooltipData(
+              getTooltipItems: (touchedSpots) {
+                return touchedSpots.map((spot) {
+                  return LineTooltipItem(
+                    spot.y.toStringAsFixed(3), // ここで強制的に3桁にする
+                    const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  );
+                }).toList();
+              },
+            ),
+          ),
           titlesData: FlTitlesData(
-            bottomTitles: AxisTitles(
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 45, // 3桁だと文字幅を取るので、少し広げる
+                getTitlesWidget: (value, meta) {
+                  return Text(
+                    value.toStringAsFixed(3), // ここで強制的に3桁にする
+                    style: const TextStyle(fontSize: 10),
+                  );
+                },
+              ),
+            ),bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
                 getTitlesWidget: (value, meta) {
@@ -200,7 +222,7 @@ class _RecordScreenState extends State<RecordScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Your Records'),
+        title: const Text('練習記録'),
       ),
       body: Column(
         children: [

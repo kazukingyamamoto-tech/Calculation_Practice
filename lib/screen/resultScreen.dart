@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
-import 'GameRecord.dart';
+import '../logic/GameRecord.dart';
 
 class ResultScreen extends StatefulWidget {
   final Duration timeTaken;

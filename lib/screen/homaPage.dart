@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'SelectModeScreen.dart';
-import 'RecordScreen.dart';
+import 'selectModeScreen.dart';
+import 'recordScreen.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
