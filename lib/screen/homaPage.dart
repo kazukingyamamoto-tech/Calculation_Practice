@@ -32,6 +32,7 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               child: const Text('100マス計算をする'),
             ),
+            SizedBox(height: 10,),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(

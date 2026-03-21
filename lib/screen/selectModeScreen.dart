@@ -31,6 +31,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
               },
               child: const Text('普通の掛け算'),
             ),
+            SizedBox(height: 10,),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
@@ -41,7 +42,9 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
                 );
               },
               child: const Text('上級の掛け算'),
-            ),ElevatedButton(
+            ),
+            SizedBox(height: 10,),
+            ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
@@ -52,6 +55,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
               },
               child: const Text('超上級の掛け算'),
             ),
+            SizedBox(height: 10,),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
@@ -63,6 +67,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
               },
               child: const Text('割り算'),
             ),
+            SizedBox(height: 10,),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
@@ -72,8 +77,10 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
                   ),
                 );
               },
-              child: const Text('ミックス'),
-            ),ElevatedButton(
+              child: const Text('ミックス計算'),
+            ),
+            SizedBox(height: 10,),
+            ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
@@ -82,8 +89,9 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
                   ),
                 );
               },
-              child: const Text('最大公約数'),
+              child: const Text('最大公約数の計算'),
             ),
+            SizedBox(height: 10,),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
@@ -93,7 +101,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
                   ),
                 );
               },
-              child: const Text('循環'),
+              child: const Text('循環する一の位の計算'),
             ),
           ],
         ),

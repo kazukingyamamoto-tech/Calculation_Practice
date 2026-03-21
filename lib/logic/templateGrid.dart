@@ -118,16 +118,19 @@ class _TemplateMultiplicationBrainState extends State<TemplateMultiplicationBrai
     final random = Random(); // ランダム生成器
 
     // ★ 横の数字はそのまま（演算子なし）で AxisItem にする
-    rowNumbers = rowRange.take(10).map((n) {
+    colNumbers = colRange.take(10).map((n) {
       return AxisItem(number: n);
     }).toList();
 
     // ★ 縦の数字は、モードによって演算子をくっつけて AxisItem にする
-    colNumbers = colRange.take(10).map((n) {
+    rowNumbers = rowRange.take(10).map((n) {
       String op = "";
       if (widget.mode.contains("ミックス")) {
         // ミックスモードなら、50%の確率で × か ÷ を割り当てる
         op = random.nextBool() ? "×" : "÷";
+      }
+      if (widget.mode.contains("循環")) {
+        op = "^";
       }
       return AxisItem(number: n, operator: op);
     }).toList();

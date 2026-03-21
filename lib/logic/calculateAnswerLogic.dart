@@ -15,14 +15,14 @@ String calculateAnswer(AxisItem row, AxisItem col, String mode) {
     case "超上級の掛け算":
       return (row.number * col.number).toString();
     case "割り算":
-      if (col.number != 0) {
+      if (row.number != 0) {
         return _divisionCalculate(row.number, col.number);
       } else {
         return "Error"; // ゼロ除算のエラー
       }
     case "ミックス計算":
-      if (col.operator == "÷") {
-        if (col.number != 0) {
+      if (row.operator == "÷") {
+        if (row.number != 0) {
           return _divisionCalculate(row.number, col.number);
         } else {
           return "Error"; // ゼロ除算のエラー
@@ -44,7 +44,7 @@ int _gcd(int x, int y) {
   return _gcd(y, x % y);
 }
 
-String _divisionCalculate(int a, int b) {
+String _divisionCalculate(int b, int a) {
   if (a % b == 0) {
     return (a ~/ b).toString(); // 割り切れる場合は整数を返す
   } else {
@@ -56,16 +56,16 @@ String _divisionCalculate(int a, int b) {
 }
 
 int _cycle(int b,int a) {
-    if (b == 0) return 1;
-    int lastDigitOfBase = a % 10;
+  if (b == 0) return 1;
+  int lastDigitOfBase = a % 10;
 
-    int expMod4 = b % 4;
-    if (expMod4 == 0) expMod4 = 4;
+  int expMod4 = b % 4;
+  if (expMod4 == 0) expMod4 = 4;
 
-    int result = 1;
-    for (int i = 0; i < expMod4; i++) {
-      result = (result * lastDigitOfBase) % 10;
-    }
+  int result = 1;
+  for (int i = 0; i < expMod4; i++) {
+    result = (result * lastDigitOfBase) % 10;
+  }
 
-    return result;
+  return result;
 }
