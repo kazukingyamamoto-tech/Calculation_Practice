@@ -6,8 +6,14 @@ import '../logic/GameRecord.dart';
 class ResultScreen extends StatefulWidget {
   final Duration timeTaken;
   final String mode;
+  final int? fixedScore;
 
-  const ResultScreen({super.key, required this.timeTaken, required this.mode});
+  const ResultScreen({
+    super.key,
+    required this.timeTaken,
+    required this.mode,
+    this.fixedScore,
+  });
 
   @override
   State<ResultScreen> createState() => _ResultScreenState();
@@ -17,7 +23,7 @@ class _ResultScreenState extends State<ResultScreen> {
   // --- 入力用のリスト群 ---
   final List<TextEditingController> _scoreControllers = [];
   final List<TextEditingController> _nameControllers = [];
-  
+
   // 各プレイヤーが「既存」を選んでいるか「新規」を選んでいるかを管理するリスト
   final List<String?> _selectedPlayers = [];
   final List<bool> _isNewPlayers = [];
@@ -49,8 +55,10 @@ class _ResultScreenState extends State<ResultScreen> {
 
     if (recordsJson != null) {
       final List<dynamic> decodedList = jsonDecode(recordsJson);
-      final List<GameRecord> records = decodedList.map((item) => GameRecord.fromMap(item)).toList();
-      
+      final List<GameRecord> records = decodedList
+          .map((item) => GameRecord.fromMap(item))
+          .toList();
+
       setState(() {
         _existingPlayers = records.map((r) => r.playerName).toSet().toList();
       });
@@ -63,7 +71,9 @@ class _ResultScreenState extends State<ResultScreen> {
   void _addPlayer() {
     setState(() {
       _nameControllers.add(TextEditingController());
-      _scoreControllers.add(TextEditingController());
+      _scoreControllers.add(
+        TextEditingController(text: widget.fixedScore?.toString() ?? ""),
+      );
 
       // 過去の記録があれば一番上の人を選択、なければ強制的に「新規」モードにする
       if (_existingPlayers.isNotEmpty) {
@@ -82,7 +92,7 @@ class _ResultScreenState extends State<ResultScreen> {
       setState(() {
         _nameControllers[index].dispose();
         _scoreControllers[index].dispose();
-        
+
         // すべてのリストから該当インデックスを削除する
         _nameControllers.removeAt(index);
         _scoreControllers.removeAt(index);
@@ -126,6 +136,17 @@ class _ResultScreenState extends State<ResultScreen> {
             ),
             const SizedBox(height: 20),
 
+            if (widget.fixedScore != null)
+              Text(
+                '手入力モードの採点結果を自動入力しています（${widget.fixedScore}/100）',
+                style: TextStyle(
+                  color: Colors.teal.shade700,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+            if (widget.fixedScore != null) const SizedBox(height: 8),
+
             // プレイヤー人数分、入力フィールドを表示
             for (int i = 0; i < _scoreControllers.length; i++)
               _buildPlayerInputField(i),
@@ -161,21 +182,25 @@ class _ResultScreenState extends State<ResultScreen> {
                   onPressed: () async {
                     List<GameRecord> newRecords = [];
                     for (int i = 0; i < _scoreControllers.length; i++) {
-                      int score = int.tryParse(_scoreControllers[i].text) ?? 0;
-                      
+                      int score =
+                          widget.fixedScore ??
+                          (int.tryParse(_scoreControllers[i].text) ?? 0);
+
                       // ★新規か既存かで保存する名前を切り替える
-                      String finalPlayerName = _isNewPlayers[i] 
-                          ? _nameControllers[i].text 
+                      String finalPlayerName = _isNewPlayers[i]
+                          ? _nameControllers[i].text
                           : _selectedPlayers[i] ?? "名無し";
 
                       // 名前が空欄だったらスキップする（またはエラーを出す）などの処理も可能
-                      if (finalPlayerName.trim().isEmpty) finalPlayerName = "名無し";
+                      if (finalPlayerName.trim().isEmpty)
+                        finalPlayerName = "名無し";
 
                       newRecords.add(
                         GameRecord(
                           playerName: finalPlayerName,
                           date: DateTime.now(),
-                          time: "${widget.timeTaken.inMinutes.toString().padLeft(2, "0")}:${(widget.timeTaken.inSeconds % 60).toString().padLeft(2, "0")}",
+                          time:
+                              "${widget.timeTaken.inMinutes.toString().padLeft(2, "0")}:${(widget.timeTaken.inSeconds % 60).toString().padLeft(2, "0")}",
                           mode: widget.mode,
                           score: score,
                         ),
@@ -214,13 +239,16 @@ class _ResultScreenState extends State<ResultScreen> {
                     value: _selectedPlayers[index],
                     decoration: const InputDecoration(labelText: "プレイヤー選択"),
                     items: [
-                      ..._existingPlayers.map((name) => DropdownMenuItem(
-                        value: name,
-                        child: Text(name),
-                      )),
+                      ..._existingPlayers.map(
+                        (name) =>
+                            DropdownMenuItem(value: name, child: Text(name)),
+                      ),
                       const DropdownMenuItem(
                         value: 'NEW_PLAYER',
-                        child: Text('＋ 新規プレイヤーを入力', style: TextStyle(color: Colors.blue)),
+                        child: Text(
+                          '＋ 新規プレイヤーを入力',
+                          style: TextStyle(color: Colors.blue),
+                        ),
                       ),
                     ],
                     onChanged: (val) {
@@ -239,7 +267,7 @@ class _ResultScreenState extends State<ResultScreen> {
                   ),
               ],
             ),
-            
+
             // ★新規の時だけ名前入力欄を表示
             if (_isNewPlayers[index]) ...[
               const SizedBox(height: 10),
@@ -260,9 +288,11 @@ class _ResultScreenState extends State<ResultScreen> {
                 Expanded(
                   child: TextField(
                     controller: _scoreControllers[index],
+                    readOnly: widget.fixedScore != null,
+                    enableInteractiveSelection: widget.fixedScore == null,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
-                      hintText: "100",
+                      hintText: "正解数を入力してください",
                       suffixText: "/ 100",
                     ),
                   ),

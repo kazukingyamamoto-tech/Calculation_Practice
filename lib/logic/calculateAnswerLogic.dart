@@ -21,7 +21,7 @@ String calculateAnswer(AxisItem row, AxisItem col, String mode) {
         return "Error"; // ゼロ除算のエラー
       }
     case "ミックス計算":
-      if (row.operator == "÷") {
+      if (col.operator == "÷") {
         if (row.number != 0) {
           return _divisionCalculate(row.number, col.number);
         } else {
@@ -31,9 +31,11 @@ String calculateAnswer(AxisItem row, AxisItem col, String mode) {
         return (row.number * col.number).toString();
       }
     case "最大公約数":
-      return _gcd(row.number,col.number).toString();
+      return _gcd(row.number, col.number).toString();
+    case "最小公倍数":
+      return _lcm(row.number, col.number).toString();
     case "循環":
-      return _cycle(row.number,col.number).toString();
+      return _cycle(row.number, col.number).toString();
     default:
       return "";
   }
@@ -42,6 +44,11 @@ String calculateAnswer(AxisItem row, AxisItem col, String mode) {
 int _gcd(int x, int y) {
   if (y == 0) return x;
   return _gcd(y, x % y);
+}
+
+int _lcm(int x, int y) {
+  if (x == 0 || y == 0) return 0;
+  return (x ~/ _gcd(x, y)) * y;
 }
 
 String _divisionCalculate(int b, int a) {
@@ -55,7 +62,7 @@ String _divisionCalculate(int b, int a) {
   }
 }
 
-int _cycle(int b,int a) {
+int _cycle(int b, int a) {
   if (b == 0) return 1;
   int lastDigitOfBase = a % 10;
 
