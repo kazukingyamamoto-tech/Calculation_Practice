@@ -147,9 +147,35 @@ class _ResultScreenState extends State<ResultScreen> {
 
             if (widget.fixedScore != null) const SizedBox(height: 8),
 
-            // プレイヤー人数分、入力フィールドを表示
-            for (int i = 0; i < _scoreControllers.length; i++)
-              _buildPlayerInputField(i),
+            // プレイヤーカードは固定サイズコンテナ内でスクロール表示
+            SizedBox(
+              height: 390,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: _scoreControllers.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'プレイヤーを追加してください',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      )
+                    : Scrollbar(
+                        thumbVisibility: true,
+                        child: ListView.builder(
+                          itemCount: _scoreControllers.length,
+                          itemBuilder: (context, index) {
+                            return _buildPlayerInputField(index);
+                          },
+                        ),
+                      ),
+              ),
+            ),
 
             const SizedBox(height: 20),
 
@@ -163,7 +189,7 @@ class _ResultScreenState extends State<ResultScreen> {
               ),
             ),
 
-            const SizedBox(height: 40),
+            const SizedBox(height: 30),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -226,7 +252,7 @@ class _ResultScreenState extends State<ResultScreen> {
   // 1人分の入力フィールドを作る部品
   Widget _buildPlayerInputField(int index) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      margin: const EdgeInsets.fromLTRB(14, 8, 14, 8),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(

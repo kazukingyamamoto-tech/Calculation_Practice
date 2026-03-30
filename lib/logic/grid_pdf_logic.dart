@@ -1,8 +1,12 @@
+import 'dart:math';
+
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-
 import 'calculateAnswerLogic.dart';
+
+// マスのサイズを一括管理（ここを変えると全体の大きさが変わります）
+const double baseCellSize = 48.0;
 
 String _pdfLabelFor(AxisItem item) {
   final op = item.operator
@@ -12,29 +16,39 @@ String _pdfLabelFor(AxisItem item) {
   return '$op${item.number}';
 }
 
-pw.Widget _axisCell(String text, PdfColor color) {
+double _axisFontSizeFor(String label, double cellSize) {
+  final baseSize = min(14.0, max(8.0, cellSize * 0.34));
+  final length = max(1, label.length);
+  final shrinkRatio = (3.0 / length).clamp(0.62, 1.12);
+  return (baseSize * shrinkRatio).clamp(7.0, 15.0);
+}
+
+// 共通のセル構築ロジック（高さを固定して正方形を担保）
+pw.Widget _buildSquareCell({
+  required String text,
+  required PdfColor color,
+  required double cellSize,
+  double? fontSize,
+  bool isBold = false,
+}) {
+  final textSize = fontSize ?? min(14.0, max(8.0, cellSize * 0.34));
+
   return pw.Container(
+    width: cellSize,
+    height: cellSize, // ここで高さを固定
     alignment: pw.Alignment.center,
-    padding: const pw.EdgeInsets.all(4),
     decoration: pw.BoxDecoration(
       color: color,
       border: pw.Border.all(color: PdfColors.grey600, width: 0.7),
     ),
     child: pw.Text(
       text,
-      style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+      maxLines: 1,
+      style: pw.TextStyle(
+        fontSize: textSize,
+        fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
+      ),
     ),
-  );
-}
-
-pw.Widget _blankCell() {
-  return pw.Container(
-    height: 22,
-    alignment: pw.Alignment.center,
-    decoration: pw.BoxDecoration(
-      border: pw.Border.all(color: PdfColors.grey600, width: 0.7),
-    ),
-    child: pw.Text('', style: const pw.TextStyle(fontSize: 10)),
   );
 }
 
@@ -43,78 +57,102 @@ Future<void> printGridAsPdf({
   required List<AxisItem> rowNumbers,
   required List<AxisItem> colNumbers,
 }) async {
-  print("🖨️ 印刷処理をスタートします...");
-
   try {
-    // ここで時間がかかっている、もしくはエラーで落ちている可能性が高いです
-    print("⏳ フォントをダウンロード中（初回は数秒かかります）...");
     final font = await PdfGoogleFonts.notoSansJPRegular();
     final fontBold = await PdfGoogleFonts.notoSansJPBold();
-    print("✅ フォントの取得に成功しました！PDFのレイアウトを構築します...");
 
     final doc = pw.Document();
 
     doc.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4.landscape,
-        margin: const pw.EdgeInsets.all(24),
+        margin: const pw.EdgeInsets.all(32),
         theme: pw.ThemeData.withFont(base: font, bold: fontBold),
         build: (context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Text(
-                '100 Grid Practice - $mode',
-                style: pw.TextStyle(
-                  fontSize: 16,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-              pw.SizedBox(height: 12),
-              pw.Table(
-                border: pw.TableBorder.all(
-                  color: PdfColors.grey600,
-                  width: 0.7,
-                ),
-                columnWidths: {
-                  0: const pw.FlexColumnWidth(1.1),
-                  for (int i = 1; i <= 10; i++) i: const pw.FlexColumnWidth(1),
-                },
+          return pw.LayoutBuilder(
+            builder: (context, constraints) {
+              const titleHeightBudget = 56.0;
+              final maxCellByWidth = constraints!.maxWidth / 11;
+              final maxCellByHeight =
+                  (constraints.maxHeight - titleHeightBudget) / 11;
+              final cellSize = min(
+                baseCellSize,
+                min(maxCellByWidth, maxCellByHeight),
+              ).clamp(20.0, baseCellSize);
+
+              return pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.center,
                 children: [
-                  pw.TableRow(
+                  // pw.Text(
+                  //   '100マス計算練習 - $mode',
+                  //   style: pw.TextStyle(
+                  //     fontSize: 20,
+                  //     fontWeight: pw.FontWeight.bold,
+                  //   ),
+                  // ),
+                  pw.SizedBox(height: 12),
+                  pw.Table(
+                    columnWidths: {
+                      for (int i = 0; i <= 10; i++)
+                        i: pw.FixedColumnWidth(cellSize),
+                    },
                     children: [
-                      _axisCell('', PdfColors.grey200),
-                      for (final rowItem in rowNumbers)
-                        _axisCell(_pdfLabelFor(rowItem), PdfColors.lightBlue50),
+                      pw.TableRow(
+                        children: [
+                          _buildSquareCell(
+                            text: '',
+                            color: PdfColors.white,
+                            cellSize: cellSize,
+                          ),
+                          for (final rowItem in rowNumbers)
+                            () {
+                              final label = _pdfLabelFor(rowItem);
+                              return _buildSquareCell(
+                                text: label,
+                                color: PdfColors.blue50,
+                                cellSize: cellSize,
+                                fontSize: _axisFontSizeFor(label, cellSize),
+                                isBold: true,
+                              );
+                            }(),
+                        ],
+                      ),
+                      for (int r = 0; r < 10; r++)
+                        pw.TableRow(
+                          children: [
+                            () {
+                              final label = _pdfLabelFor(colNumbers[r]);
+                              return _buildSquareCell(
+                                text: label,
+                                color: PdfColors.orange50,
+                                cellSize: cellSize,
+                                fontSize: _axisFontSizeFor(label, cellSize),
+                                isBold: true,
+                              );
+                            }(),
+                            for (int c = 0; c < 10; c++)
+                              _buildSquareCell(
+                                text: '',
+                                color: PdfColors.white,
+                                cellSize: cellSize,
+                              ),
+                          ],
+                        ),
                     ],
                   ),
-                  for (int r = 0; r < 10; r++)
-                    pw.TableRow(
-                      children: [
-                        _axisCell(
-                          _pdfLabelFor(colNumbers[r]),
-                          PdfColors.orange50,
-                        ),
-                        for (int c = 0; c < 10; c++) _blankCell(),
-                      ],
-                    ),
                 ],
-              ),
-            ],
+              );
+            },
           );
         },
       ),
     );
 
-    print("🚀 プリントダイアログ（プレビュー）を呼び出します...");
     await Printing.layoutPdf(
       onLayout: (format) async => doc.save(),
-      name: '100_grid_practice.pdf', // 保存時のデフォルトファイル名
+      name: '100grid_$mode.pdf',
     );
-    print("🎉 印刷処理が正常に完了しました！");
-  } catch (e, stackTrace) {
-    // どこかでエラーが起きたらここに出力されます
-    print("🚨 印刷処理中にエラーが発生しました: $e");
-    print(stackTrace);
+  } catch (e) {
+    print("PDF印刷エラー: $e");
   }
 }

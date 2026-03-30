@@ -28,6 +28,7 @@ class SelectModeScreen extends StatefulWidget {
 
 class _SelectModeScreenState extends State<SelectModeScreen> {
   final PageController _pageController = PageController(viewportFraction: 0.8);
+  static const double _minLandscapeSafeHeight = 550;
   int _currentIndex = 0;
   bool _isManualInputMode = false;
 
@@ -58,8 +59,8 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         _colMaxCtrl.text = "10";
         break;
       case '割り算':
-        _rowMinCtrl.text = "11";
-        _rowMaxCtrl.text = "99";
+        _rowMinCtrl.text = "15";
+        _rowMaxCtrl.text = "45";
         _colMinCtrl.text = "2";
         _colMaxCtrl.text = "11"; // 1の段は簡単すぎるので2〜9など
         break;
@@ -119,7 +120,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       color: Colors.orangeAccent,
       onStart: (context, isManualInputMode) => TemplateMultiplication(
         rowMin: 11,
-        rowMax: 30,
+        rowMax: 25,
         colMin: 1,
         colMax: 10,
         mode: "上級の掛け算",
@@ -146,8 +147,8 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       icon: Icons.horizontal_split,
       color: Colors.blueAccent,
       onStart: (context, isManualInputMode) => TemplateMultiplication(
-        rowMin: 11,
-        rowMax: 99,
+        rowMin: 15,
+        rowMax: 45,
         colMin: 2,
         colMax: 11,
         mode: "割り算",
@@ -255,6 +256,9 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
@@ -263,62 +267,82 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         elevation: 1,
         foregroundColor: Colors.black,
       ),
-      body: Column(
-        children: [
-          const SizedBox(height: 20),
-          // --- 上半分：スワイプできるカード部分 ---
-          Expanded(
-            flex: 5,
-            child: PageView.builder(
-              controller: _pageController,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              },
-              itemCount: _modes.length,
-              itemBuilder: (context, index) {
-                final mode = _modes[index];
-                final isSelected = _currentIndex == index;
-                final scale = isSelected ? 1.0 : 0.9;
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final shouldShowPortraitGuide =
+              isLandscape && constraints.maxHeight < _minLandscapeSafeHeight;
 
-                return TweenAnimationBuilder(
-                  duration: const Duration(milliseconds: 300),
-                  tween: Tween<double>(begin: scale, end: scale),
-                  curve: Curves.easeOut,
-                  builder: (context, double value, child) {
-                    return Transform.scale(
-                      scale: value,
-                      child: Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        elevation: isSelected ? 8 : 2,
-                        color: mode.color,
-                        child: mode.isCustom
-                            ? _buildCustomCard()
-                            : _buildNormalCard(mode),
-                      ),
+          if (shouldShowPortraitGuide) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  '表示が崩れるため、縦向きにしてください',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+              ),
+            );
+          }
+
+          return Column(
+            children: [
+              const SizedBox(height: 20),
+              // --- 上半分：スワイプできるカード部分 ---
+              Expanded(
+                flex: 5,
+                child: PageView.builder(
+                  controller: _pageController,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentIndex = index;
+                    });
+                  },
+                  itemCount: _modes.length,
+                  itemBuilder: (context, index) {
+                    final mode = _modes[index];
+                    final isSelected = _currentIndex == index;
+                    final scale = isSelected ? 1.0 : 0.9;
+
+                    return TweenAnimationBuilder(
+                      duration: const Duration(milliseconds: 300),
+                      tween: Tween<double>(begin: scale, end: scale),
+                      curve: Curves.easeOut,
+                      builder: (context, double value, child) {
+                        return Transform.scale(
+                          scale: value,
+                          child: Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            elevation: isSelected ? 8 : 2,
+                            color: mode.color,
+                            child: mode.isCustom
+                                ? _buildCustomCard()
+                                : _buildNormalCard(mode),
+                          ),
+                        );
+                      },
                     );
                   },
-                );
-              },
-            ),
-          ),
+                ),
+              ),
 
-          const SizedBox(height: 30),
+              const SizedBox(height: 30),
 
-          // --- 下半分：スタートボタン ---
-          Expanded(
-            flex: 2,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: _modes[_currentIndex].isCustom
-                  ? _buildCustomBottomArea()
-                  : _buildNormalBottomArea(_modes[_currentIndex]),
-            ),
-          ),
-        ],
+              // --- 下半分：スタートボタン ---
+              Expanded(
+                flex: 2,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: _modes[_currentIndex].isCustom
+                      ? _buildCustomBottomArea()
+                      : _buildNormalBottomArea(_modes[_currentIndex]),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

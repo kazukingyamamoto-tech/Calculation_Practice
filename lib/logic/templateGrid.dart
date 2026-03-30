@@ -803,77 +803,138 @@ class _TemplateMultiplicationBrainState
   Widget _buildTimeAndCheckPanel() {
     final showPrintButton = !widget.manualInputMode && !_isStarted;
 
-    Widget actionButton;
-    if (!_isStarted) {
-      actionButton = ElevatedButton.icon(
-        onPressed: () {
-          setState(() {
-            _isStarted = true;
-            _timer.start();
-          });
-        },
-        label: const Text("スタート"),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
-        ),
-      );
-    } else if (!_isFinished) {
-      actionButton = ElevatedButton.icon(
-        onPressed: () {
-          setState(() {
-            _timer.stop();
-            if (widget.manualInputMode) {
-              _score = _gradeManualAnswers();
-            }
-            _showAnswers = true;
-            _isFinished = true;
-          });
-        },
-        label: const Text("フィニッシュ答え合わせ"),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        ),
-      );
-    } else {
-      actionButton = ElevatedButton.icon(
-        onPressed: _onResultPressed,
-        label: const Text("結果入力へ"),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
-        ),
-      );
-    }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final panelWidth = constraints.maxWidth;
+        final useCompactLayout = panelWidth < 560;
+        final isTiny = panelWidth < 380;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            "タイム: $_timeDisplay",
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (showPrintButton)
-                OutlinedButton.icon(
-                  onPressed: _onPrintPressed,
-                  icon: const Icon(Icons.print),
-                  label: const Text("印刷"),
+        final horizontalPadding = isTiny ? 10.0 : 14.0;
+        final verticalPadding = isTiny ? 8.0 : 10.0;
+        final timerFontSize = isTiny ? 18.0 : (useCompactLayout ? 20.0 : 22.0);
+        final buttonFontSize = isTiny ? 13.0 : 14.0;
+        final buttonVerticalPadding = isTiny ? 8.0 : 10.0;
+        final defaultButtonHorizontalPadding = isTiny
+            ? 12.0
+            : (useCompactLayout ? 16.0 : 25.0);
+        final finishButtonHorizontalPadding = isTiny
+            ? 10.0
+            : (useCompactLayout ? 12.0 : 14.0);
+
+        ButtonStyle buildElevatedStyle(double horizontalPadding) {
+          return ElevatedButton.styleFrom(
+            padding: EdgeInsets.symmetric(
+              horizontal: horizontalPadding,
+              vertical: buttonVerticalPadding,
+            ),
+            textStyle: TextStyle(
+              fontSize: buttonFontSize,
+              fontWeight: FontWeight.w600,
+            ),
+          );
+        }
+
+        Widget actionButton;
+        if (!_isStarted) {
+          actionButton = ElevatedButton.icon(
+            onPressed: () {
+              setState(() {
+                _isStarted = true;
+                _timer.start();
+              });
+            },
+            label: Text("スタート", style: TextStyle(fontSize: buttonFontSize)),
+            style: buildElevatedStyle(defaultButtonHorizontalPadding),
+          );
+        } else if (!_isFinished) {
+          actionButton = ElevatedButton.icon(
+            onPressed: () {
+              setState(() {
+                _timer.stop();
+                if (widget.manualInputMode) {
+                  _score = _gradeManualAnswers();
+                }
+                _showAnswers = true;
+                _isFinished = true;
+              });
+            },
+            label: Text(
+              "フィニッシュ答え合わせ",
+              style: TextStyle(fontSize: buttonFontSize),
+            ),
+            style: buildElevatedStyle(finishButtonHorizontalPadding),
+          );
+        } else {
+          actionButton = ElevatedButton.icon(
+            onPressed: _onResultPressed,
+            label: Text("結果入力へ", style: TextStyle(fontSize: buttonFontSize)),
+            style: buildElevatedStyle(defaultButtonHorizontalPadding),
+          );
+        }
+
+        final buttonGroup = Wrap(
+          alignment: WrapAlignment.end,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: isTiny ? 6.0 : 8.0,
+          runSpacing: 6,
+          children: [
+            if (showPrintButton)
+              OutlinedButton.icon(
+                onPressed: _onPrintPressed,
+                style: OutlinedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isTiny ? 10 : 12,
+                    vertical: buttonVerticalPadding,
+                  ),
                 ),
-              if (showPrintButton) const SizedBox(width: 8),
-              actionButton,
-            ],
+                icon: const Icon(Icons.print),
+                label: Text("印刷", style: TextStyle(fontSize: buttonFontSize)),
+              ),
+            actionButton,
+          ],
+        );
+
+        return Container(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(
+            horizontal: horizontalPadding,
+            vertical: verticalPadding,
           ),
-        ],
-      ),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: useCompactLayout
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      "タイム: $_timeDisplay",
+                      style: TextStyle(
+                        fontSize: timerFontSize,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(alignment: Alignment.centerRight, child: buttonGroup),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "タイム: $_timeDisplay",
+                      style: TextStyle(
+                        fontSize: timerFontSize,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    buttonGroup,
+                  ],
+                ),
+        );
+      },
     );
   }
 
@@ -954,7 +1015,9 @@ class _TemplateMultiplicationBrainState
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final panelAndGaps = 92.0;
+        final panelAndGaps = constraints.maxWidth < 380
+            ? 142.0
+            : (constraints.maxWidth < 560 ? 124.0 : 92.0);
         final scoreArea = showScore ? 44.0 : 0.0;
         final keypadArea = showKeypad ? 370.0 : 0.0;
 

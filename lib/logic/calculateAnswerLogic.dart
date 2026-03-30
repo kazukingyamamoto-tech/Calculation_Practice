@@ -16,14 +16,14 @@ String calculateAnswer(AxisItem row, AxisItem col, String mode) {
       return (row.number * col.number).toString();
     case "割り算":
       if (row.number != 0) {
-        return _divisionCalculate(row.number, col.number);
+        return _divisionCalculate(col.number, row.number);
       } else {
         return "Error"; // ゼロ除算のエラー
       }
     case "ミックス計算":
       if (col.operator == "÷") {
         if (row.number != 0) {
-          return _divisionCalculate(row.number, col.number);
+          return _divisionCalculate(col.number, row.number);
         } else {
           return "Error"; // ゼロ除算のエラー
         }
