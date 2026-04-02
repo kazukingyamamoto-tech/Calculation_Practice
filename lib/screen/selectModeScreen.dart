@@ -32,6 +32,10 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
   int _currentIndex = 0;
   bool _isManualInputMode = false;
 
+  // --- 絞り込み用の状態管理 ---
+  String _selectedCategory = 'すべて';
+  final List<String> _categories = ['すべて', '掛け算', '割り算', 'その他'];
+
   // --- カスタムモード用の状態管理 ---
   String _selectedCustomLogic = "普通の掛け算";
   final _rowMinCtrl = TextEditingController(text: "1");
@@ -63,6 +67,24 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         _rowMaxCtrl.text = "45";
         _colMinCtrl.text = "2";
         _colMaxCtrl.text = "11"; // 1の段は簡単すぎるので2〜9など
+        break;
+      case '少数の掛け算':
+        _rowMinCtrl.text = "11";
+        _rowMaxCtrl.text = "99";
+        _colMinCtrl.text = "2";
+        _colMaxCtrl.text = "9";
+        break;
+      case '割り算の少数でこたえを出す':
+        _rowMinCtrl.text = "15";
+        _rowMaxCtrl.text = "45";
+        _colMinCtrl.text = "2";
+        _colMaxCtrl.text = "9";
+        break;
+      case '割り算の少数でこたえを出すレベル２':
+        _rowMinCtrl.text = "30";
+        _rowMaxCtrl.text = "95";
+        _colMinCtrl.text = "11";
+        _colMaxCtrl.text = "25";
         break;
       case 'ミックス計算':
         _rowMinCtrl.text = "11";
@@ -142,7 +164,21 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       ),
     ),
     GameMode(
-      title: "割り算",
+      title: "少数の掛け算",
+      description: "1.8×4 や 2.3×7 など\n少数第一位までの掛け算を練習！",
+      icon: Icons.functions,
+      color: Colors.lightBlue,
+      onStart: (context, isManualInputMode) => TemplateMultiplication(
+        rowMin: 11,
+        rowMax: 99,
+        colMin: 2,
+        colMax: 9,
+        mode: "少数の掛け算",
+        manualInputMode: isManualInputMode,
+      ),
+    ),
+    GameMode(
+      title: "割り算（分数）",
       description: "二桁÷一桁の計算！\n割り切れない時は分数にしよう。",
       icon: Icons.horizontal_split,
       color: Colors.blueAccent,
@@ -151,7 +187,35 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         rowMax: 45,
         colMin: 2,
         colMax: 11,
-        mode: "割り算",
+        mode: "割り算（分数）",
+        manualInputMode: isManualInputMode,
+      ),
+    ),
+    GameMode(
+      title: "割り算（少数）",
+      description: "二桁÷一桁。割り切れない場合は\n四捨五入して小数第2位まで！",
+      icon: Icons.looks_one,
+      color: Colors.blue,
+      onStart: (context, isManualInputMode) => TemplateMultiplication(
+        rowMin: 15,
+        rowMax: 45,
+        colMin: 2,
+        colMax: 9,
+        mode: "割り算（少数）",
+        manualInputMode: isManualInputMode,
+      ),
+    ),
+    GameMode(
+      title: "上級の割り算（少数）",
+      description: "二桁÷二桁に挑戦！\n割り切れない場合は小数第2位まで。",
+      icon: Icons.looks_two,
+      color: Colors.blueGrey,
+      onStart: (context, isManualInputMode) => TemplateMultiplication(
+        rowMin: 30,
+        rowMax: 95,
+        colMin: 11,
+        colMax: 25,
+        mode: "上級の割り算（少数）",
         manualInputMode: isManualInputMode,
       ),
     ),
@@ -218,6 +282,22 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       isCustom: true, // カスタムフラグをON！
     ),
   ];
+
+  // 絞り込み用の計算プロパティ
+  List<GameMode> get _filteredModes {
+    if (_selectedCategory == 'すべて') return _modes;
+
+    return _modes.where((mode) {
+      if (mode.isCustom) return true; // カスタムは常に最後に追加
+      if (_selectedCategory == '掛け算' && mode.title.contains('掛け算')) return true;
+      if (_selectedCategory == '割り算' && mode.title.contains('割り算')) return true;
+      if (_selectedCategory == 'その他' &&
+          !mode.title.contains('掛け算') &&
+          !mode.title.contains('割り算'))
+        return true;
+      return false;
+    }).toList();
+  }
 
   // カスタムモードのスタートボタン処理
   void _startCustomMode() {
@@ -287,7 +367,46 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
 
           return Column(
             children: [
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
+              // --- カテゴリ絞り込みドロップダウン ---
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Row(
+                  children: [
+                    const Text(
+                      '絞り込み: ',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: DropdownButton<String>(
+                        value: _selectedCategory,
+                        isExpanded: true,
+                        items: _categories
+                            .map(
+                              (cat) => DropdownMenuItem(
+                                value: cat,
+                                child: Text(cat),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() {
+                              _selectedCategory = val;
+                              _currentIndex = 0;
+                            });
+                            if (_pageController.hasClients) {
+                              _pageController.jumpToPage(0);
+                            }
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
               // --- 上半分：スワイプできるカード部分 ---
               Expanded(
                 flex: 5,
@@ -298,9 +417,9 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
                       _currentIndex = index;
                     });
                   },
-                  itemCount: _modes.length,
+                  itemCount: _filteredModes.length,
                   itemBuilder: (context, index) {
-                    final mode = _modes[index];
+                    final mode = _filteredModes[index];
                     final isSelected = _currentIndex == index;
                     final scale = isSelected ? 1.0 : 0.9;
 
@@ -335,9 +454,9 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
                 flex: 2,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: _modes[_currentIndex].isCustom
+                  child: _filteredModes[_currentIndex].isCustom
                       ? _buildCustomBottomArea()
-                      : _buildNormalBottomArea(_modes[_currentIndex]),
+                      : _buildNormalBottomArea(_filteredModes[_currentIndex]),
                 ),
               ),
             ],
@@ -434,12 +553,14 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
           ),
           const SizedBox(height: 10),
           Container(
+            width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
             ),
             child: DropdownButton<String>(
+              isExpanded: true,
               value: _selectedCustomLogic,
               underline: const SizedBox(),
               icon: const Icon(Icons.arrow_drop_down, color: Colors.teal),
@@ -448,9 +569,21 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
-              items: ['普通の掛け算', '割り算', 'ミックス計算', '最大公約数', '最小公倍数', '循環']
-                  .map((val) => DropdownMenuItem(value: val, child: Text(val)))
-                  .toList(),
+              items:
+                  [
+                        '普通の掛け算',
+                        '割り算（分数）',
+                        '割り算（少数）',
+                        '上級の割り算（少数）',
+                        'ミックス計算',
+                        '最大公約数',
+                        '最小公倍数',
+                        '循環',
+                      ]
+                      .map(
+                        (val) => DropdownMenuItem(value: val, child: Text(val)),
+                      )
+                      .toList(),
               onChanged: (val) {
                 setState(() {
                   _selectedCustomLogic = val!;
@@ -526,7 +659,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
-            _modes.length,
+            _filteredModes.length,
             (index) => Container(
               margin: const EdgeInsets.symmetric(horizontal: 4),
               width: _currentIndex == index ? 12 : 8,
@@ -534,13 +667,13 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: _currentIndex == index
-                    ? _modes[_currentIndex].color
+                    ? _filteredModes[_currentIndex].color
                     : Colors.grey.shade300,
               ),
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 22),
         _buildInputModeSwitch(),
         const SizedBox(height: 12),
         SizedBox(
@@ -584,7 +717,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
-            _modes.length,
+            _filteredModes.length,
             (index) => Container(
               margin: const EdgeInsets.symmetric(horizontal: 4),
               width: _currentIndex == index ? 12 : 8,
@@ -592,13 +725,13 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: _currentIndex == index
-                    ? _modes[_currentIndex].color
+                    ? _filteredModes[_currentIndex].color
                     : Colors.grey.shade300,
               ),
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 22),
         _buildInputModeSwitch(),
         const SizedBox(height: 12),
         SizedBox(

@@ -179,17 +179,18 @@ class _ResultScreenState extends State<ResultScreen> {
 
             const SizedBox(height: 20),
 
-            // プレイヤー追加ボタン
-            ElevatedButton.icon(
-              onPressed: _addPlayer,
-              icon: const Icon(Icons.person_add),
-              label: const Text('プレイヤーを追加'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue.shade50,
+            // プレイヤー追加ボタン (手入力モード時は非表示)
+            if (widget.fixedScore == null) ...[
+              ElevatedButton.icon(
+                onPressed: _addPlayer,
+                icon: const Icon(Icons.person_add),
+                label: const Text('プレイヤーを追加'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue.shade50,
+                ),
               ),
-            ),
-
-            const SizedBox(height: 30),
+              const SizedBox(height: 30),
+            ],
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,

@@ -1,11 +1,12 @@
 class AxisItem {
   final int number;
   final String operator;
+  final String? displayOverride;
 
-  AxisItem({required this.number, this.operator = ""});
+  AxisItem({required this.number, this.operator = "", this.displayOverride});
 
   // 画面に表示する用の文字列（例: "×3", "5"）
-  String get displayText => "$operator$number";
+  String get displayText => displayOverride ?? "$operator$number";
 }
 
 String calculateAnswer(AxisItem row, AxisItem col, String mode) {
@@ -14,15 +15,24 @@ String calculateAnswer(AxisItem row, AxisItem col, String mode) {
     case "上級の掛け算":
     case "超上級の掛け算":
       return (row.number * col.number).toString();
-    case "割り算":
-      if (row.number != 0) {
+    case "少数の掛け算":
+      return _decimalMultiplicationCalculate(row.number, col.number);
+    case "割り算（分数）":
+      if (col.number != 0) {
         return _divisionCalculate(col.number, row.number);
       } else {
         return "Error"; // ゼロ除算のエラー
       }
+    case "割り算（少数）":
+    case "上級の割り算（少数）":
+      if (col.number != 0) {
+        return _divisionDecimalCalculate(col.number, row.number);
+      } else {
+        return "Error";
+      }
     case "ミックス計算":
       if (col.operator == "÷") {
-        if (row.number != 0) {
+        if (col.number != 0) {
           return _divisionCalculate(col.number, row.number);
         } else {
           return "Error"; // ゼロ除算のエラー
@@ -60,6 +70,26 @@ String _divisionCalculate(int b, int a) {
     b ~/= gcd;
     return "$a/$b";
   }
+}
+
+String _decimalMultiplicationCalculate(int scaledBy10, int multiplier) {
+  final productScaledBy10 = scaledBy10 * multiplier;
+  final integerPart = productScaledBy10 ~/ 10;
+  final decimalPart = productScaledBy10 % 10;
+
+  if (decimalPart == 0) {
+    return integerPart.toString();
+  }
+  return '$integerPart.$decimalPart';
+}
+
+String _divisionDecimalCalculate(int divisor, int dividend) {
+  if (dividend % divisor == 0) {
+    return (dividend ~/ divisor).toString();
+  }
+
+  final rounded = ((dividend / divisor) * 100).round() / 100;
+  return rounded.toStringAsFixed(2);
 }
 
 int _cycle(int b, int a) {

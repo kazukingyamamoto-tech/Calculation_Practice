@@ -9,11 +9,7 @@ import 'calculateAnswerLogic.dart';
 const double baseCellSize = 48.0;
 
 String _pdfLabelFor(AxisItem item) {
-  final op = item.operator
-      .replaceAll('×', 'x')
-      .replaceAll('÷', '÷')
-      .replaceAll('^', '^');
-  return '$op${item.number}';
+  return item.displayText.replaceAll('×', 'x');
 }
 
 double _axisFontSizeFor(String label, double cellSize) {

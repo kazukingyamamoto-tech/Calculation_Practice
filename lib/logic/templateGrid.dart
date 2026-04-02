@@ -198,6 +198,15 @@ class _TemplateMultiplicationBrainState
       if (widget.mode.contains("循環")) {
         op = "^"; // 累乗のマーク
       }
+
+      if (widget.mode == "少数の掛け算") {
+        return AxisItem(
+          number: n,
+          operator: op,
+          displayOverride: (n / 10).toStringAsFixed(1),
+        );
+      }
+
       return AxisItem(number: n, operator: op); // 横軸は記号なし
     }).toList();
 
@@ -281,6 +290,20 @@ class _TemplateMultiplicationBrainState
       if (current.length >= 8) {
         return;
       }
+
+      if ((value == '.' || value == '/') && current.contains(value)) {
+        return;
+      }
+
+      if (value == '.' && current.isEmpty) {
+        _manualInputs[_selectedRow][_selectedCol] = '0.';
+        return;
+      }
+
+      if (value == '/' && current.isEmpty) {
+        return;
+      }
+
       _manualInputs[_selectedRow][_selectedCol] = '$current$value';
     });
   }
@@ -395,37 +418,44 @@ class _TemplateMultiplicationBrainState
   Widget _buildKeyButton({
     String? text,
     IconData? icon,
-    double width = 80,
+    int flex = 1,
     double fontSize = 20,
     required VoidCallback onTap,
   }) {
-    return SizedBox(
-      width: width,
-      height: 60,
-      child: FilledButton(
-        onPressed: _showAnswers ? null : onTap,
-        style: FilledButton.styleFrom(
-          backgroundColor: Colors.indigo,
-          disabledBackgroundColor: Colors.grey.shade400,
-          padding: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+    final double screenHeight = MediaQuery.of(context).size.height;
+
+    return Expanded(
+      flex: flex,
+      child: SizedBox(
+        height: screenHeight * 0.065, // Pixel 8aの比率 (約60px) に基づく
+        child: FilledButton(
+          onPressed: _showAnswers ? null : onTap,
+          style: FilledButton.styleFrom(
+            backgroundColor: Colors.indigo,
+            disabledBackgroundColor: Colors.grey.shade400,
+            padding: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
-        ),
-        child: icon != null
-            ? Icon(icon, size: 20)
-            : Text(
-                text ?? '',
-                style: TextStyle(
-                  fontSize: fontSize,
-                  fontWeight: FontWeight.bold,
+          child: icon != null
+              ? Icon(icon, size: 20)
+              : Text(
+                  text ?? '',
+                  style: TextStyle(
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
+        ),
       ),
     );
   }
 
   Widget _buildManualKeypad() {
+    final extraInputKey =
+        (widget.mode == "少数の掛け算" || widget.mode.contains("割り算の少数")) ? '.' : '/';
+
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(top: 8),
@@ -469,7 +499,10 @@ class _TemplateMultiplicationBrainState
               const SizedBox(width: 6),
               _buildKeyButton(text: '6', onTap: () => _appendManualInput('6')),
               const SizedBox(width: 6),
-              _buildKeyButton(text: '/', onTap: () => _appendManualInput('/')),
+              _buildKeyButton(
+                text: extraInputKey,
+                onTap: () => _appendManualInput(extraInputKey),
+              ),
             ],
           ),
           const SizedBox(height: 6),
@@ -484,7 +517,6 @@ class _TemplateMultiplicationBrainState
               const SizedBox(width: 6),
               _buildKeyButton(
                 text: '削除',
-                width: 80,
                 fontSize: 14,
                 onTap: _deleteManualInput,
               ),
@@ -574,230 +606,228 @@ class _TemplateMultiplicationBrainState
   }
 
   Widget _buildManualScrollableGrid({
-    required double height,
+    double? height,
     required bool showOverview,
   }) {
     const double cellSize = 56;
     const double headerSize = cellSize;
     final bodySize = cellSize * 10;
 
-    return SizedBox(
-      height: height,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final gridViewportWidth = (constraints.maxWidth - headerSize).clamp(
-            0.0,
-            double.infinity,
-          );
-          final gridViewportHeight = (constraints.maxHeight - headerSize).clamp(
-            0.0,
-            double.infinity,
-          );
-          final overviewScale = min(
-            gridViewportWidth / bodySize,
-            gridViewportHeight / bodySize,
-          ).clamp(0.35, 1.0);
+    Widget content = LayoutBuilder(
+      builder: (context, constraints) {
+        final gridViewportWidth = (constraints.maxWidth - headerSize).clamp(
+          0.0,
+          double.infinity,
+        );
+        final gridViewportHeight = (constraints.maxHeight - headerSize).clamp(
+          0.0,
+          double.infinity,
+        );
+        final overviewScale = min(
+          gridViewportWidth / bodySize,
+          gridViewportHeight / bodySize,
+        ).clamp(0.35, 1.0);
 
-          final minPanX = min(gridViewportWidth - bodySize, 0.0);
-          final minPanY = min(gridViewportHeight - bodySize, 0.0);
+        final minPanX = min(gridViewportWidth - bodySize, 0.0);
+        final minPanY = min(gridViewportHeight - bodySize, 0.0);
 
-          return Container(
-            key: _manualViewportKey,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: Colors.grey.shade400),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Stack(
-              children: [
-                // 左上の空白（#）部分
-                Positioned(
-                  left: 0,
-                  top: 0,
-                  width: headerSize,
-                  height: headerSize,
-                  child: Container(
-                    color: Colors.grey.shade100,
-                    alignment: Alignment.center,
-                    child: const Text(
-                      '',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey,
-                      ),
+        return Container(
+          key: _manualViewportKey,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: Colors.grey.shade400),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Stack(
+            children: [
+              // 左上の空白（#）部分
+              Positioned(
+                left: 0,
+                top: 0,
+                width: headerSize,
+                height: headerSize,
+                child: Container(
+                  color: Colors.grey.shade100,
+                  alignment: Alignment.center,
+                  child: const Text(
+                    '',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
                     ),
                   ),
                 ),
-                // X軸（上部の横並び数字）
-                Positioned(
-                  left: headerSize,
-                  top: 0,
-                  right: 0,
-                  height: headerSize,
-                  child: AnimatedBuilder(
-                    animation: _manualPanController,
-                    builder: (context, _) {
-                      final m = _manualPanController.value.storage;
-                      final panX = showOverview
-                          ? 0.0
-                          : m[12].clamp(minPanX, 0.0);
-                      return ClipRect(
-                        child: Transform.translate(
-                          offset: Offset(panX, 0),
-                          // ★ 修正：OverflowBoxを追加し、親の幅制約を無視して描画させる
-                          child: OverflowBox(
-                            maxWidth: double.infinity,
+              ),
+              // X軸（上部の横並び数字）
+              Positioned(
+                left: headerSize,
+                top: 0,
+                right: 0,
+                height: headerSize,
+                child: AnimatedBuilder(
+                  animation: _manualPanController,
+                  builder: (context, _) {
+                    final m = _manualPanController.value.storage;
+                    final panX = showOverview ? 0.0 : m[12].clamp(minPanX, 0.0);
+                    return ClipRect(
+                      child: Transform.translate(
+                        offset: Offset(panX, 0),
+                        // ★ 修正：OverflowBoxを追加し、親の幅制約を無視して描画させる
+                        child: OverflowBox(
+                          maxWidth: double.infinity,
+                          alignment: Alignment.centerLeft,
+                          child: Transform.scale(
                             alignment: Alignment.centerLeft,
-                            child: Transform.scale(
-                              alignment: Alignment.centerLeft,
-                              scale: showOverview ? overviewScale : 1.0,
-                              child: SizedBox(
-                                width: bodySize,
-                                child: Row(
-                                  children: [
-                                    for (int c = 0; c < 10; c++)
-                                      Container(
-                                        width: cellSize,
-                                        height: headerSize,
-                                        decoration: BoxDecoration(
-                                          color: Colors.blue.shade50,
-                                          border: Border.all(
-                                            color: Colors.grey.shade500,
-                                          ),
-                                        ),
-                                        alignment: Alignment.center,
-                                        child: _buildAxisText(
-                                          rowNumbers[c].displayText,
+                            scale: showOverview ? overviewScale : 1.0,
+                            child: SizedBox(
+                              width: bodySize,
+                              child: Row(
+                                children: [
+                                  for (int c = 0; c < 10; c++)
+                                    Container(
+                                      width: cellSize,
+                                      height: headerSize,
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue.shade50,
+                                        border: Border.all(
+                                          color: Colors.grey.shade500,
                                         ),
                                       ),
-                                  ],
-                                ),
+                                      alignment: Alignment.center,
+                                      child: _buildAxisText(
+                                        rowNumbers[c].displayText,
+                                      ),
+                                    ),
+                                ],
                               ),
                             ),
                           ),
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  },
                 ),
-                // Y軸（左側の縦並び数字）
-                Positioned(
-                  left: 0,
-                  top: headerSize,
-                  width: headerSize,
-                  bottom: 0,
-                  child: AnimatedBuilder(
-                    animation: _manualPanController,
-                    builder: (context, _) {
-                      final m = _manualPanController.value.storage;
-                      final panY = showOverview
-                          ? 0.0
-                          : m[13].clamp(minPanY, 0.0);
-                      return ClipRect(
-                        child: Transform.translate(
-                          offset: Offset(0, panY),
-                          // ★ 修正：OverflowBoxを追加し、親の高さ制約を無視して描画させる
-                          child: OverflowBox(
-                            maxHeight: double.infinity,
+              ),
+              // Y軸（左側の縦並び数字）
+              Positioned(
+                left: 0,
+                top: headerSize,
+                width: headerSize,
+                bottom: 0,
+                child: AnimatedBuilder(
+                  animation: _manualPanController,
+                  builder: (context, _) {
+                    final m = _manualPanController.value.storage;
+                    final panY = showOverview ? 0.0 : m[13].clamp(minPanY, 0.0);
+                    return ClipRect(
+                      child: Transform.translate(
+                        offset: Offset(0, panY),
+                        // ★ 修正：OverflowBoxを追加し、親の高さ制約を無視して描画させる
+                        child: OverflowBox(
+                          maxHeight: double.infinity,
+                          alignment: Alignment.topCenter,
+                          child: Transform.scale(
                             alignment: Alignment.topCenter,
-                            child: Transform.scale(
-                              alignment: Alignment.topCenter,
-                              scale: showOverview ? overviewScale : 1.0,
-                              child: SizedBox(
-                                height: bodySize,
-                                child: Column(
-                                  children: [
-                                    for (int r = 0; r < 10; r++)
-                                      Container(
-                                        width: headerSize,
-                                        height: cellSize,
-                                        decoration: BoxDecoration(
-                                          color: Colors.orange.shade50,
-                                          border: Border.all(
-                                            color: Colors.grey.shade500,
-                                          ),
-                                        ),
-                                        alignment: Alignment.center,
-                                        child: _buildAxisText(
-                                          colNumbers[r].displayText,
+                            scale: showOverview ? overviewScale : 1.0,
+                            child: SizedBox(
+                              height: bodySize,
+                              child: Column(
+                                children: [
+                                  for (int r = 0; r < 10; r++)
+                                    Container(
+                                      width: headerSize,
+                                      height: cellSize,
+                                      decoration: BoxDecoration(
+                                        color: Colors.orange.shade50,
+                                        border: Border.all(
+                                          color: Colors.grey.shade500,
                                         ),
                                       ),
-                                  ],
-                                ),
+                                      alignment: Alignment.center,
+                                      child: _buildAxisText(
+                                        colNumbers[r].displayText,
+                                      ),
+                                    ),
+                                ],
                               ),
                             ),
                           ),
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  },
                 ),
-                // メインの入力グリッド部分（変更なし）
-                Positioned(
-                  left: headerSize,
-                  top: headerSize,
-                  right: 0,
-                  bottom: 0,
-                  child: ClipRect(
-                    child: InteractiveViewer(
-                      transformationController: _manualPanController,
-                      constrained: false,
-                      minScale: 1.0,
-                      maxScale: 1.0,
-                      scaleEnabled: false,
-                      panEnabled: !showOverview,
-                      boundaryMargin: EdgeInsets.zero,
-                      child: Transform.scale(
-                        alignment: Alignment.topLeft,
-                        scale: showOverview ? overviewScale : 1.0,
-                        child: SizedBox(
-                          width: bodySize,
-                          height: bodySize,
-                          child: Column(
-                            children: [
-                              for (int i = 0; i < 10; i++)
-                                Row(
-                                  children: [
-                                    for (int j = 0; j < 10; j++)
-                                      Container(
-                                        width: cellSize,
-                                        height: cellSize,
-                                        decoration: BoxDecoration(
-                                          color: _cellColorFor(i, j),
-                                          border: Border.all(
-                                            color:
-                                                (i == _selectedRow &&
-                                                    j == _selectedCol &&
-                                                    widget.manualInputMode &&
-                                                    !_showAnswers)
-                                                ? Colors.blueAccent
-                                                : Colors.grey.shade400,
-                                            width:
-                                                (i == _selectedRow &&
-                                                    j == _selectedCol &&
-                                                    widget.manualInputMode &&
-                                                    !_showAnswers)
-                                                ? 2
-                                                : 1,
-                                          ),
+              ),
+              // メインの入力グリッド部分（変更なし）
+              Positioned(
+                left: headerSize,
+                top: headerSize,
+                right: 0,
+                bottom: 0,
+                child: ClipRect(
+                  child: InteractiveViewer(
+                    transformationController: _manualPanController,
+                    constrained: false,
+                    minScale: 1.0,
+                    maxScale: 1.0,
+                    scaleEnabled: false,
+                    panEnabled: !showOverview,
+                    boundaryMargin: EdgeInsets.zero,
+                    child: Transform.scale(
+                      alignment: Alignment.topLeft,
+                      scale: showOverview ? overviewScale : 1.0,
+                      child: SizedBox(
+                        width: bodySize,
+                        height: bodySize,
+                        child: Column(
+                          children: [
+                            for (int i = 0; i < 10; i++)
+                              Row(
+                                children: [
+                                  for (int j = 0; j < 10; j++)
+                                    Container(
+                                      width: cellSize,
+                                      height: cellSize,
+                                      decoration: BoxDecoration(
+                                        color: _cellColorFor(i, j),
+                                        border: Border.all(
+                                          color:
+                                              (i == _selectedRow &&
+                                                  j == _selectedCol &&
+                                                  widget.manualInputMode &&
+                                                  !_showAnswers)
+                                              ? Colors.blueAccent
+                                              : Colors.grey.shade400,
+                                          width:
+                                              (i == _selectedRow &&
+                                                  j == _selectedCol &&
+                                                  widget.manualInputMode &&
+                                                  !_showAnswers)
+                                              ? 2
+                                              : 1,
                                         ),
-                                        child: _buildCellContent(i, j),
                                       ),
-                                  ],
-                                ),
-                            ],
-                          ),
+                                      child: _buildCellContent(i, j),
+                                    ),
+                                ],
+                              ),
+                          ],
                         ),
                       ),
                     ),
                   ),
                 ),
-              ],
-            ),
-          );
-        },
-      ),
+              ),
+            ],
+          ),
+        );
+      },
     );
+
+    if (height != null) {
+      return SizedBox(height: height, child: content);
+    }
+    return content;
   }
 
   Widget _buildTimeAndCheckPanel() {
@@ -814,6 +844,9 @@ class _TemplateMultiplicationBrainState
         final timerFontSize = isTiny ? 18.0 : (useCompactLayout ? 20.0 : 22.0);
         final buttonFontSize = isTiny ? 13.0 : 14.0;
         final buttonVerticalPadding = isTiny ? 8.0 : 10.0;
+        final printButtonHorizontalPadding = isTiny
+            ? 12.0
+            : (useCompactLayout ? 14.0 : 12.0);
         final defaultButtonHorizontalPadding = isTiny
             ? 12.0
             : (useCompactLayout ? 16.0 : 25.0);
@@ -883,7 +916,7 @@ class _TemplateMultiplicationBrainState
                 onPressed: _onPrintPressed,
                 style: OutlinedButton.styleFrom(
                   padding: EdgeInsets.symmetric(
-                    horizontal: isTiny ? 10 : 12,
+                    horizontal: printButtonHorizontalPadding,
                     vertical: buttonVerticalPadding,
                   ),
                 ),
@@ -1013,47 +1046,36 @@ class _TemplateMultiplicationBrainState
     final showScore = _isFinished;
     final showKeypad = _isStarted && !_isFinished;
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final panelAndGaps = constraints.maxWidth < 380
-            ? 142.0
-            : (constraints.maxWidth < 560 ? 124.0 : 92.0);
-        final scoreArea = showScore ? 44.0 : 0.0;
-        final keypadArea = showKeypad ? 370.0 : 0.0;
-
-        final manualGridHeight =
-            (constraints.maxHeight - panelAndGaps - scoreArea - keypadArea)
-                .clamp(170.0, 280.0);
-
-        return Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            children: [
-              _buildTimeAndCheckPanel(),
-              const SizedBox(height: 8),
-              if (!_isStarted || _isFinished)
-                _buildNormalModeGrid()
-              else
-                _buildManualScrollableGrid(
-                  height: manualGridHeight,
-                  showOverview: false,
-                ),
-              const SizedBox(height: 6),
-              if (showScore)
-                Text(
-                  "正解数: $_score / 100",
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.teal,
-                  ),
-                ),
-              if (showKeypad)
-                SizedBox(height: 370, child: _buildManualKeypad()),
-            ],
-          ),
-        );
-      },
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Column(
+        children: [
+          _buildTimeAndCheckPanel(),
+          const SizedBox(height: 8),
+          if (!_isStarted || _isFinished)
+            _buildNormalModeGrid()
+          else
+            Expanded(
+              flex: 4,
+              child: _buildManualScrollableGrid(showOverview: false),
+            ),
+          const SizedBox(height: 6),
+          if (showScore)
+            Text(
+              "正解数: $_score / 100",
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.teal,
+              ),
+            ),
+          if (showKeypad)
+            Expanded(
+              flex: 5,
+              child: SingleChildScrollView(child: _buildManualKeypad()),
+            ),
+        ],
+      ),
     );
   }
 
