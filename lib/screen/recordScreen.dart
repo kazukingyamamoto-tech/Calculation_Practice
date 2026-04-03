@@ -13,11 +13,20 @@ class RecordScreen extends StatefulWidget {
 
 class _RecordScreenState extends State<RecordScreen> {
   List<GameRecord> _records = [];
+  String _scoreMethod = '独自スコア';
 
   @override
   void initState() {
     super.initState();
     _loadRecords(); // 画面が開いたら読み込む
+    _loadSettings(); // 設定を読み込む
+  }
+
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _scoreMethod = prefs.getString('scoreMethod') ?? '独自スコア';
+    });
   }
 
   // スマホから記録を読み込む
@@ -55,6 +64,10 @@ class _RecordScreenState extends State<RecordScreen> {
 
   // --- 追加：効率を計算する共通メソッド ---
   double _calculateEfficiency(GameRecord r) {
+    if (_scoreMethod == '正解数') {
+      return r.score.toDouble();
+    }
+
     List<String> parts = r.time.split(':');
     if (parts.length != 2) return 0; // フォーマットエラー対策
 
@@ -63,7 +76,17 @@ class _RecordScreenState extends State<RecordScreen> {
     double totalSec = minutes * 60.0 + seconds;
 
     if (totalSec < 1) return 0; // 0除算エラー防止
-    return double.parse((r.score / totalSec).toStringAsFixed(3));
+
+    if (_scoreMethod == '秒間正解数') {
+      return double.parse((r.score / totalSec).toStringAsFixed(1));
+    } else if (_scoreMethod == '独自スコア') {
+      int incorrectAnswers = 100 - r.score;
+      return double.parse(
+        (((r.score - incorrectAnswers) / totalSec) * 100).toStringAsFixed(1),
+      );
+    }
+
+    return r.score.toDouble(); // デフォルト
   }
 
   Widget _buildFilters() {
@@ -75,7 +98,16 @@ class _RecordScreenState extends State<RecordScreen> {
           Expanded(
             child: DropdownButtonFormField<String>(
               value: _selectedPlayer,
-              hint: const Text("プレイヤー"),
+              hint: const Text(
+                "プレイヤー",
+                style: TextStyle(color: Color(0xFF544275)),
+              ),
+              icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF544275)),
+              style: const TextStyle(
+                color: Color(0xFF544275),
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
               items: _players
                   .map((p) => DropdownMenuItem(value: p, child: Text(p)))
                   .toList(),
@@ -92,7 +124,16 @@ class _RecordScreenState extends State<RecordScreen> {
           Expanded(
             child: DropdownButtonFormField<String>(
               value: _selectedMode,
-              hint: const Text("モード"),
+              hint: const Text(
+                "モード",
+                style: TextStyle(color: Color(0xFF544275)),
+              ),
+              icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF544275)),
+              style: const TextStyle(
+                color: Color(0xFF544275),
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
               items: _modes
                   .map((m) => DropdownMenuItem(value: m, child: Text(m)))
                   .toList(),
@@ -149,7 +190,9 @@ class _RecordScreenState extends State<RecordScreen> {
               getTooltipItems: (touchedSpots) {
                 return touchedSpots.map((spot) {
                   return LineTooltipItem(
-                    spot.y.toStringAsFixed(3), // ここで強制的に3桁にする
+                    _scoreMethod == '正解数'
+                        ? spot.y.toInt().toString()
+                        : spot.y.toStringAsFixed(1), // 正解数は整数、その他は小数第1位
                     const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -163,10 +206,12 @@ class _RecordScreenState extends State<RecordScreen> {
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
-                reservedSize: 45, // 3桁だと文字幅を取るので、少し広げる
+                reservedSize: 35, // 1桁のために少し幅を狭める
                 getTitlesWidget: (value, meta) {
                   return Text(
-                    value.toStringAsFixed(3), // ここで強制的に3桁にする
+                    _scoreMethod == '正解数'
+                        ? value.toInt().toString()
+                        : value.toStringAsFixed(1), // 正解数は整数、その他は小数第1位
                     style: const TextStyle(fontSize: 10),
                   );
                 },
@@ -249,74 +294,123 @@ class _RecordScreenState extends State<RecordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('練習記録'),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            flex: 6,
-            child: _records.isEmpty
-                ? const Center(child: Text("まだ記録がありません"))
-                : ListView.builder(
-                    itemCount: _records.length,
-                    itemBuilder: (context, index) {
-                      final record = _records[index];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        child: ListTile(
-                          leading: const Icon(
-                            Icons.stars,
-                            color: Colors.orange,
-                          ),
-                          title: Text(
-                            "${record.mode} (${record.score}/100) - ${record.playerName}",
-                          ),
-                          subtitle: Text(
-                            "${record.date.year}/${record.date.month}/${record.date.day} ${record.date.hour}:${record.date.minute}",
-                          ),
-                          trailing: Text(
-                            record.time,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+        backgroundColor: Colors.transparent,
+        title: const Text(
+          '練習記録',
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            color: Color(0xFF544275),
           ),
-          const Divider(height: 1),
-          Expanded(
-            flex: 5,
-            child: Column(
-              children: [
-                _buildFilters(),
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.only(
-                      left: 6,
-                      right: 6,
-                      top: 10,
-                      bottom: 36,
+        ),
+        elevation: 0,
+        foregroundColor: const Color(0xFF544275),
+        iconTheme: const IconThemeData(color: Color(0xFF544275)),
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFCAB6F1), Color(0xFFFBE0D1)],
+            stops: [0.2, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                flex: 6,
+                child: _records.isEmpty
+                    ? const Center(child: Text("まだ記録がありません"))
+                    : ListView.builder(
+                        itemCount: _records.length,
+                        itemBuilder: (context, index) {
+                          final record = _records[index];
+                          return Card(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: const BorderSide(
+                                color: Color(0xFF544275),
+                                width: 1.0, // うっすらとした細さに変更
+                              ),
+                            ),
+                            elevation: 4,
+                            child: ListTile(
+                              leading: const Icon(
+                                Icons.stars,
+                                color: Colors.orange,
+                              ),
+                              title: Text(
+                                "${record.mode} (${record.score}/100) - ${record.playerName}",
+                              ),
+                              subtitle: Text(
+                                "${record.date.year}/${record.date.month}/${record.date.day} ${record.date.hour}:${record.date.minute}",
+                              ),
+                              trailing: Text(
+                                record.time,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+              Expanded(
+                flex: 5,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(20),
                     ),
-                    color: Colors.grey.shade100,
-                    child: Center(
-                      child: _selectedMode == null
-                          ? const Text("プレイヤーとモードを選択してください")
-                          : _buildLineChart(),
-                    ),
+                    border: Border.all(color: Colors.white, width: 4),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 8,
+                        offset: Offset(0, -3),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      SizedBox(height: 15),
+                      _buildFilters(),
+                      Expanded(
+                        child: Container(
+                          margin: const EdgeInsets.only(
+                            left: 12,
+                            right: 12,
+                            top: 10,
+                            bottom: 30,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF7F5FA), // 少しだけ紫がかった薄いグレー
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Center(
+                            child: _selectedMode == null
+                                ? const Text("プレイヤーとモードを選択してください")
+                                : _buildLineChart(),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

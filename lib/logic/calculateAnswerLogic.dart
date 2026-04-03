@@ -89,7 +89,7 @@ String _divisionDecimalCalculate(int divisor, int dividend) {
   }
 
   final rounded = ((dividend / divisor) * 100).round() / 100;
-  return rounded.toStringAsFixed(2);
+  return rounded.toStringAsFixed(1);
 }
 
 int _cycle(int b, int a) {

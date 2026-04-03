@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:math'; // ★ 追加：ランダム判定用
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:math';
 import 'timer.dart';
 import '../screen/resultScreen.dart';
 import 'calculateAnswerLogic.dart';
@@ -22,25 +23,14 @@ class TemplateMultiplication extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(mode),
-      ),
-      body: SafeArea(
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: TemplateMultiplicationBrain(
-            rowMin: rowMin,
-            rowMax: rowMax,
-            colMin: colMin,
-            colMax: colMax,
-            mode: mode,
-            manualInputMode: manualInputMode,
-            calculateAnswer: calculateAnswer,
-          ),
-        ),
-      ),
+    return TemplateMultiplicationBrain(
+      rowMin: rowMin,
+      rowMax: rowMax,
+      colMin: colMin,
+      colMax: colMax,
+      mode: mode,
+      manualInputMode: manualInputMode,
+      calculateAnswer: calculateAnswer,
     );
   }
 }
@@ -90,9 +80,12 @@ class _TemplateMultiplicationBrainState
 
   final CalculationTimer _timer = CalculationTimer();
 
+  bool _isPhoneKeypad = false; // ★追加：キーパッドの配置を保持
+
   @override
   void initState() {
     super.initState();
+    _loadSettings(); // ★追加：設定を読み込む
     _generateNumbers();
     _timer.onTick = (newTime) {
       setState(() {
@@ -106,6 +99,15 @@ class _TemplateMultiplicationBrainState
         10,
         (_) => List.generate(10, (_) => null),
       );
+    }
+  }
+
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _isPhoneKeypad = prefs.getBool('isPhoneKeypad') ?? false;
+      });
     }
   }
 
@@ -269,6 +271,27 @@ class _TemplateMultiplicationBrainState
     );
   }
 
+  bool get _isManualSelectionActive {
+    return widget.manualInputMode &&
+        _isStarted &&
+        !_showAnswers &&
+        !_isFinished;
+  }
+
+  Color _rowAxisCellColor(int col) {
+    if (_isManualSelectionActive && col == _selectedCol) {
+      return Colors.blue.shade200;
+    }
+    return Colors.blue.shade50;
+  }
+
+  Color _colAxisCellColor(int row) {
+    if (_isManualSelectionActive && row == _selectedRow) {
+      return Colors.orange.shade200;
+    }
+    return Colors.orange.shade50;
+  }
+
   void _selectCell(int row, int col) {
     if (!widget.manualInputMode || _showAnswers) {
       return;
@@ -314,14 +337,7 @@ class _TemplateMultiplicationBrainState
     }
 
     setState(() {
-      final current = _manualInputs[_selectedRow][_selectedCol];
-      if (current.isEmpty) {
-        return;
-      }
-      _manualInputs[_selectedRow][_selectedCol] = current.substring(
-        0,
-        current.length - 1,
-      );
+      _manualInputs[_selectedRow][_selectedCol] = '';
     });
   }
 
@@ -431,20 +447,23 @@ class _TemplateMultiplicationBrainState
         child: FilledButton(
           onPressed: _showAnswers ? null : onTap,
           style: FilledButton.styleFrom(
-            backgroundColor: Colors.indigo,
-            disabledBackgroundColor: Colors.grey.shade400,
+            backgroundColor: Colors.white,
+            foregroundColor: const Color(0xFF544275), // 濃い紫色で読みやすく
+            disabledBackgroundColor: Colors.grey.shade200,
+            disabledForegroundColor: Colors.grey.shade500,
             padding: EdgeInsets.zero,
+            side: const BorderSide(color: Color(0xFF544275), width: 1.5),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
           ),
           child: icon != null
-              ? Icon(icon, size: 20)
+              ? Icon(icon, size: 24)
               : Text(
                   text ?? '',
                   style: TextStyle(
-                    fontSize: fontSize,
-                    fontWeight: FontWeight.bold,
+                    fontSize: fontSize + 2, // サイズを少し大きく
+                    fontWeight: FontWeight.w900, // より太く
                   ),
                 ),
         ),
@@ -455,6 +474,55 @@ class _TemplateMultiplicationBrainState
   Widget _buildManualKeypad() {
     final extraInputKey =
         (widget.mode == "少数の掛け算" || widget.mode.contains("割り算の少数")) ? '.' : '/';
+
+    // _isPhoneKeypad の設定に応じてキーパットの行を切り替える
+    final List<Widget> keypadTopRow = _isPhoneKeypad
+        ? [
+            _buildKeyButton(text: '1', onTap: () => _appendManualInput('1')),
+            const SizedBox(width: 6),
+            _buildKeyButton(text: '2', onTap: () => _appendManualInput('2')),
+            const SizedBox(width: 6),
+            _buildKeyButton(text: '3', onTap: () => _appendManualInput('3')),
+            const SizedBox(width: 6),
+            _buildKeyButton(text: '0', onTap: () => _appendManualInput('0')),
+          ]
+        : [
+            _buildKeyButton(text: '7', onTap: () => _appendManualInput('7')),
+            const SizedBox(width: 6),
+            _buildKeyButton(text: '8', onTap: () => _appendManualInput('8')),
+            const SizedBox(width: 6),
+            _buildKeyButton(text: '9', onTap: () => _appendManualInput('9')),
+            const SizedBox(width: 6),
+            _buildKeyButton(
+              text: '削除',
+              fontSize: 14,
+              onTap: _deleteManualInput,
+            ),
+          ];
+
+    final List<Widget> keypadBottomRow = _isPhoneKeypad
+        ? [
+            _buildKeyButton(text: '7', onTap: () => _appendManualInput('7')),
+            const SizedBox(width: 6),
+            _buildKeyButton(text: '8', onTap: () => _appendManualInput('8')),
+            const SizedBox(width: 6),
+            _buildKeyButton(text: '9', onTap: () => _appendManualInput('9')),
+            const SizedBox(width: 6),
+            _buildKeyButton(
+              text: '削除',
+              fontSize: 14,
+              onTap: _deleteManualInput,
+            ),
+          ]
+        : [
+            _buildKeyButton(text: '1', onTap: () => _appendManualInput('1')),
+            const SizedBox(width: 6),
+            _buildKeyButton(text: '2', onTap: () => _appendManualInput('2')),
+            const SizedBox(width: 6),
+            _buildKeyButton(text: '3', onTap: () => _appendManualInput('3')),
+            const SizedBox(width: 6),
+            _buildKeyButton(text: '0', onTap: () => _appendManualInput('0')),
+          ];
 
     return Container(
       width: double.infinity,
@@ -479,15 +547,7 @@ class _TemplateMultiplicationBrainState
           const SizedBox(height: 13),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildKeyButton(text: '1', onTap: () => _appendManualInput('1')),
-              const SizedBox(width: 6),
-              _buildKeyButton(text: '2', onTap: () => _appendManualInput('2')),
-              const SizedBox(width: 6),
-              _buildKeyButton(text: '3', onTap: () => _appendManualInput('3')),
-              const SizedBox(width: 6),
-              _buildKeyButton(text: '0', onTap: () => _appendManualInput('0')),
-            ],
+            children: keypadTopRow,
           ),
           const SizedBox(height: 6),
           Row(
@@ -508,19 +568,7 @@ class _TemplateMultiplicationBrainState
           const SizedBox(height: 6),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildKeyButton(text: '7', onTap: () => _appendManualInput('7')),
-              const SizedBox(width: 6),
-              _buildKeyButton(text: '8', onTap: () => _appendManualInput('8')),
-              const SizedBox(width: 6),
-              _buildKeyButton(text: '9', onTap: () => _appendManualInput('9')),
-              const SizedBox(width: 6),
-              _buildKeyButton(
-                text: '削除',
-                fontSize: 14,
-                onTap: _deleteManualInput,
-              ),
-            ],
+            children: keypadBottomRow,
           ),
           const SizedBox(height: 8),
           Row(
@@ -557,14 +605,20 @@ class _TemplateMultiplicationBrainState
       return GestureDetector(
         onTap: () => _selectCell(row, col),
         behavior: HitTestBehavior.opaque,
-        child: Center(
-          child: Text(
-            _manualInputs[row][col],
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: Colors.black87,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2.0),
+          child: Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                _manualInputs[row][col],
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: _showAnswers ? 14 : 28, // 答え合わせ中は小さく
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
+                ),
+              ),
             ),
           ),
         ),
@@ -591,7 +645,7 @@ class _TemplateMultiplicationBrainState
     );
   }
 
-  Widget _buildAxisText(String text, {double fontSize = 16}) {
+  Widget _buildAxisText(String text, {double fontSize = 28}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 3),
       child: FittedBox(
@@ -688,7 +742,7 @@ class _TemplateMultiplicationBrainState
                                       width: cellSize,
                                       height: headerSize,
                                       decoration: BoxDecoration(
-                                        color: Colors.blue.shade50,
+                                        color: _rowAxisCellColor(c),
                                         border: Border.all(
                                           color: Colors.grey.shade500,
                                         ),
@@ -738,7 +792,7 @@ class _TemplateMultiplicationBrainState
                                       width: headerSize,
                                       height: cellSize,
                                       decoration: BoxDecoration(
-                                        color: Colors.orange.shade50,
+                                        color: _colAxisCellColor(r),
                                         border: Border.all(
                                           color: Colors.grey.shade500,
                                         ),
@@ -830,6 +884,106 @@ class _TemplateMultiplicationBrainState
     return content;
   }
 
+  void _showAnswersDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text(
+            "正解",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF544275),
+            ),
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: _buildAnswerOnlyGrid(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                "閉じる",
+                style: TextStyle(color: Color(0xFF544275)),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildAnswerOnlyGrid() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cellSize = (constraints.maxWidth / 11).clamp(24.0, 36.0);
+
+        return SingleChildScrollView(
+          child: Table(
+            border: TableBorder.all(color: Colors.grey.shade400),
+            columnWidths: {
+              for (int c = 0; c <= 10; c++) c: FixedColumnWidth(cellSize),
+            },
+            children: [
+              TableRow(
+                children: [
+                  Container(height: cellSize, color: Colors.grey.shade200),
+                  for (int c = 0; c < 10; c++)
+                    Container(
+                      height: cellSize,
+                      color: Colors.blue.shade50,
+                      alignment: Alignment.center,
+                      child: _buildAxisText(
+                        rowNumbers[c].displayText,
+                        fontSize: cellSize * 0.4,
+                      ),
+                    ),
+                ],
+              ),
+              for (int i = 0; i < 10; i++)
+                TableRow(
+                  children: [
+                    Container(
+                      height: cellSize,
+                      color: Colors.orange.shade50,
+                      alignment: Alignment.center,
+                      child: _buildAxisText(
+                        colNumbers[i].displayText,
+                        fontSize: cellSize * 0.4,
+                      ),
+                    ),
+                    for (int j = 0; j < 10; j++)
+                      Container(
+                        height: cellSize,
+                        color: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        alignment: Alignment.center,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            widget.calculateAnswer(
+                              rowNumbers[j],
+                              colNumbers[i],
+                              widget.mode,
+                            ),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(255, 164, 24, 24),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildTimeAndCheckPanel() {
     final showPrintButton = !widget.manualInputMode && !_isStarted;
 
@@ -854,12 +1008,14 @@ class _TemplateMultiplicationBrainState
             ? 10.0
             : (useCompactLayout ? 12.0 : 14.0);
 
-        ButtonStyle buildElevatedStyle(double horizontalPadding) {
-          return ElevatedButton.styleFrom(
+        ButtonStyle buildOutlinedStyle(double horizontalPadding) {
+          return OutlinedButton.styleFrom(
             padding: EdgeInsets.symmetric(
               horizontal: horizontalPadding,
               vertical: buttonVerticalPadding,
             ),
+            side: const BorderSide(color: Color(0xFF544275)),
+            foregroundColor: const Color(0xFF544275),
             textStyle: TextStyle(
               fontSize: buttonFontSize,
               fontWeight: FontWeight.w600,
@@ -869,18 +1025,20 @@ class _TemplateMultiplicationBrainState
 
         Widget actionButton;
         if (!_isStarted) {
-          actionButton = ElevatedButton.icon(
+          actionButton = OutlinedButton(
+            key: const ValueKey('startButton'),
             onPressed: () {
               setState(() {
                 _isStarted = true;
                 _timer.start();
               });
             },
-            label: Text("スタート", style: TextStyle(fontSize: buttonFontSize)),
-            style: buildElevatedStyle(defaultButtonHorizontalPadding),
+            style: buildOutlinedStyle(defaultButtonHorizontalPadding),
+            child: Text("スタート", style: TextStyle(fontSize: buttonFontSize)),
           );
         } else if (!_isFinished) {
-          actionButton = ElevatedButton.icon(
+          actionButton = OutlinedButton(
+            key: const ValueKey('finishButton'),
             onPressed: () {
               setState(() {
                 _timer.stop();
@@ -891,17 +1049,18 @@ class _TemplateMultiplicationBrainState
                 _isFinished = true;
               });
             },
-            label: Text(
+            style: buildOutlinedStyle(finishButtonHorizontalPadding),
+            child: Text(
               "フィニッシュ答え合わせ",
               style: TextStyle(fontSize: buttonFontSize),
             ),
-            style: buildElevatedStyle(finishButtonHorizontalPadding),
           );
         } else {
-          actionButton = ElevatedButton.icon(
+          actionButton = OutlinedButton(
+            key: const ValueKey('resultButton'),
             onPressed: _onResultPressed,
-            label: Text("結果入力へ", style: TextStyle(fontSize: buttonFontSize)),
-            style: buildElevatedStyle(defaultButtonHorizontalPadding),
+            style: buildOutlinedStyle(defaultButtonHorizontalPadding),
+            child: Text("結果入力へ", style: TextStyle(fontSize: buttonFontSize)),
           );
         }
 
@@ -913,6 +1072,7 @@ class _TemplateMultiplicationBrainState
           children: [
             if (showPrintButton)
               OutlinedButton.icon(
+                key: const ValueKey('printButton'),
                 onPressed: _onPrintPressed,
                 style: OutlinedButton.styleFrom(
                   padding: EdgeInsets.symmetric(
@@ -921,7 +1081,34 @@ class _TemplateMultiplicationBrainState
                   ),
                 ),
                 icon: const Icon(Icons.print),
-                label: Text("印刷", style: TextStyle(fontSize: buttonFontSize)),
+                label: Text(
+                  "印刷",
+                  style: TextStyle(
+                    fontSize: buttonFontSize,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            if (widget.manualInputMode && _isFinished)
+              OutlinedButton.icon(
+                key: const ValueKey('answersButton'),
+                onPressed: _showAnswersDialog,
+                style: OutlinedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: defaultButtonHorizontalPadding,
+                    vertical: buttonVerticalPadding,
+                  ),
+                  side: const BorderSide(color: Color(0xFF544275)),
+                  foregroundColor: const Color(0xFF544275),
+                ),
+                icon: const Icon(Icons.grid_on),
+                label: Text(
+                  "答えを見る",
+                  style: TextStyle(
+                    fontSize: buttonFontSize,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             actionButton,
           ],
@@ -971,56 +1158,69 @@ class _TemplateMultiplicationBrainState
     );
   }
 
-  Widget _buildNormalModeGrid() {
+  Widget _buildNormalModeGrid({Widget? bottomWidget}) {
     return Expanded(
       child: LayoutBuilder(
         builder: (context, constraints) {
           final cellSize = (constraints.maxWidth / 11).clamp(28.0, 44.0);
 
           return SingleChildScrollView(
-            child: Table(
-              border: TableBorder.all(color: Colors.grey),
-              columnWidths: {
-                for (int c = 0; c <= 10; c++) c: FixedColumnWidth(cellSize),
-              },
+            child: Column(
               children: [
-                TableRow(
+                Table(
+                  border: TableBorder.all(color: Colors.grey),
+                  columnWidths: {
+                    for (int c = 0; c <= 10; c++) c: FixedColumnWidth(cellSize),
+                  },
                   children: [
-                    Container(height: cellSize, color: Colors.grey.shade100),
-                    for (var rowItem in rowNumbers)
-                      Container(
-                        height: cellSize,
-                        color: Colors.blue.shade50,
-                        alignment: Alignment.center,
-                        child: _buildAxisText(
-                          rowItem.displayText,
-                          fontSize: cellSize * 0.34,
+                    TableRow(
+                      children: [
+                        Container(
+                          height: cellSize,
+                          color: Colors.grey.shade100,
                         ),
+                        for (int c = 0; c < 10; c++)
+                          Container(
+                            height: cellSize,
+                            color: _rowAxisCellColor(c),
+                            alignment: Alignment.center,
+                            child: _buildAxisText(
+                              rowNumbers[c].displayText,
+                              fontSize: cellSize * 0.34,
+                            ),
+                          ),
+                      ],
+                    ),
+                    for (int i = 0; i < 10; i++)
+                      TableRow(
+                        children: [
+                          Container(
+                            height: cellSize,
+                            color: _colAxisCellColor(i),
+                            alignment: Alignment.center,
+                            child: _buildAxisText(
+                              colNumbers[i].displayText,
+                              fontSize: cellSize * 0.34,
+                            ),
+                          ),
+                          for (int j = 0; j < 10; j++)
+                            Container(
+                              height: cellSize,
+                              decoration: _cellDecorationFor(i, j),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 2,
+                              ),
+                              alignment: Alignment.center,
+                              child: _buildCellContent(i, j),
+                            ),
+                        ],
                       ),
                   ],
                 ),
-                for (int i = 0; i < 10; i++)
-                  TableRow(
-                    children: [
-                      Container(
-                        height: cellSize,
-                        color: Colors.orange.shade50,
-                        alignment: Alignment.center,
-                        child: _buildAxisText(
-                          colNumbers[i].displayText,
-                          fontSize: cellSize * 0.34,
-                        ),
-                      ),
-                      for (int j = 0; j < 10; j++)
-                        Container(
-                          height: cellSize,
-                          decoration: _cellDecorationFor(i, j),
-                          padding: const EdgeInsets.symmetric(horizontal: 2),
-                          alignment: Alignment.center,
-                          child: _buildCellContent(i, j),
-                        ),
-                    ],
-                  ),
+                if (bottomWidget != null) ...[
+                  const SizedBox(height: 12),
+                  bottomWidget,
+                ],
               ],
             ),
           );
@@ -1052,28 +1252,31 @@ class _TemplateMultiplicationBrainState
         children: [
           _buildTimeAndCheckPanel(),
           const SizedBox(height: 8),
-          if (!_isStarted || _isFinished)
-            _buildNormalModeGrid()
-          else
+          if (!_isStarted || _isFinished) ...[
+            _buildNormalModeGrid(
+              bottomWidget: showScore
+                  ? Text(
+                      "正解数: $_score / 100",
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.teal,
+                      ),
+                    )
+                  : null,
+            ),
+          ] else ...[
             Expanded(
               flex: 4,
               child: _buildManualScrollableGrid(showOverview: false),
             ),
-          const SizedBox(height: 6),
-          if (showScore)
-            Text(
-              "正解数: $_score / 100",
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.teal,
+            const SizedBox(height: 6),
+            if (showKeypad)
+              Expanded(
+                flex: 5,
+                child: SingleChildScrollView(child: _buildManualKeypad()),
               ),
-            ),
-          if (showKeypad)
-            Expanded(
-              flex: 5,
-              child: SingleChildScrollView(child: _buildManualKeypad()),
-            ),
+          ],
         ],
       ),
     );
@@ -1081,6 +1284,86 @@ class _TemplateMultiplicationBrainState
 
   @override
   Widget build(BuildContext context) {
-    return _buildCalculationUI();
+    return PopScope(
+      canPop: !_isStarted,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+
+        final shouldPop = await showDialog<bool>(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text('確認'),
+              content: Text(
+                _isFinished
+                    ? '答え合わせ中です。\n本当に戻ってもよろしいですか？\n(戻ると記録は残りません)'
+                    : 'タイム計測中です。\n本当に戻ってもよろしいですか？\n(戻ると記録は残りません)',
+              ),
+              actions: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(_isFinished ? 'ゲームを続ける' : 'ゲームを続ける'),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: const FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text('モード選択に戻る'),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        );
+
+        if (shouldPop == true && mounted) {
+          Navigator.of(context).pop(result);
+        }
+      },
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          title: Text(
+            widget.mode,
+            style: const TextStyle(
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF544275),
+            ),
+          ),
+          elevation: 0,
+          foregroundColor: const Color(0xFF544275),
+          iconTheme: const IconThemeData(color: Color(0xFF544275)),
+        ),
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFFCAB6F1), Color(0xFFFBE0D1)],
+              stops: [0.2, 1.0],
+            ),
+          ),
+          child: SafeArea(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: _buildCalculationUI(),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

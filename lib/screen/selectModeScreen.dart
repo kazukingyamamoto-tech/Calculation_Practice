@@ -64,7 +64,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         break;
       case '割り算':
         _rowMinCtrl.text = "15";
-        _rowMaxCtrl.text = "45";
+        _rowMaxCtrl.text = "24";
         _colMinCtrl.text = "2";
         _colMaxCtrl.text = "11"; // 1の段は簡単すぎるので2〜9など
         break;
@@ -94,9 +94,9 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         break;
       case '最大公約数':
         _rowMinCtrl.text = "20";
-        _rowMaxCtrl.text = "45";
+        _rowMaxCtrl.text = "40";
         _colMinCtrl.text = "20";
-        _colMaxCtrl.text = "45";
+        _colMaxCtrl.text = "40";
         break;
       case '最小公倍数':
         _rowMinCtrl.text = "4";
@@ -184,7 +184,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       color: Colors.blueAccent,
       onStart: (context, isManualInputMode) => TemplateMultiplication(
         rowMin: 15,
-        rowMax: 45,
+        rowMax: 24,
         colMin: 2,
         colMax: 11,
         mode: "割り算（分数）",
@@ -193,7 +193,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
     ),
     GameMode(
       title: "割り算（少数）",
-      description: "二桁÷一桁。割り切れない場合は\n四捨五入して小数第2位まで！",
+      description: "二桁÷一桁。割り切れない場合は\n四捨五入して小数第1位まで！",
       icon: Icons.looks_one,
       color: Colors.blue,
       onStart: (context, isManualInputMode) => TemplateMultiplication(
@@ -207,7 +207,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
     ),
     GameMode(
       title: "上級の割り算（少数）",
-      description: "二桁÷二桁に挑戦！\n割り切れない場合は小数第2位まで。",
+      description: "二桁÷二桁に挑戦！\n割り切れない場合は小数第1位まで！",
       icon: Icons.looks_two,
       color: Colors.blueGrey,
       onStart: (context, isManualInputMode) => TemplateMultiplication(
@@ -240,9 +240,9 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       color: Colors.indigo,
       onStart: (context, isManualInputMode) => TemplateMultiplication(
         rowMin: 20,
-        rowMax: 45,
+        rowMax: 40,
         colMin: 20,
-        colMax: 45,
+        colMax: 40,
         mode: "最大公約数",
         manualInputMode: isManualInputMode,
       ),
@@ -340,128 +340,167 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         MediaQuery.of(context).orientation == Orientation.landscape;
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('計算の種類を選ぶ'),
-        elevation: 1,
-        foregroundColor: Colors.black,
+        backgroundColor: Colors.transparent,
+        title: const Text(
+          '計算の種類を選ぶ',
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            color: Color(0xFF544275),
+          ),
+        ),
+        elevation: 0,
+        foregroundColor: const Color(0xFF544275),
+        iconTheme: const IconThemeData(color: Color(0xFF544275)),
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final shouldShowPortraitGuide =
-              isLandscape && constraints.maxHeight < _minLandscapeSafeHeight;
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFCAB6F1), Color(0xFFFBE0D1)],
+            stops: [0.2, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final shouldShowPortraitGuide =
+                  isLandscape &&
+                  constraints.maxHeight < _minLandscapeSafeHeight;
 
-          if (shouldShowPortraitGuide) {
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
-                  '表示が崩れるため、縦向きにしてください',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-              ),
-            );
-          }
-
-          return Column(
-            children: [
-              const SizedBox(height: 10),
-              // --- カテゴリ絞り込みドロップダウン ---
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Row(
-                  children: [
-                    const Text(
-                      '絞り込み: ',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: DropdownButton<String>(
-                        value: _selectedCategory,
-                        isExpanded: true,
-                        items: _categories
-                            .map(
-                              (cat) => DropdownMenuItem(
-                                value: cat,
-                                child: Text(cat),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (val) {
-                          if (val != null) {
-                            setState(() {
-                              _selectedCategory = val;
-                              _currentIndex = 0;
-                            });
-                            if (_pageController.hasClients) {
-                              _pageController.jumpToPage(0);
-                            }
-                          }
-                        },
+              if (shouldShowPortraitGuide) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      '表示が崩れるため、縦向きにしてください',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 10),
-              // --- 上半分：スワイプできるカード部分 ---
-              Expanded(
-                flex: 5,
-                child: PageView.builder(
-                  controller: _pageController,
-                  onPageChanged: (index) {
-                    setState(() {
-                      _currentIndex = index;
-                    });
-                  },
-                  itemCount: _filteredModes.length,
-                  itemBuilder: (context, index) {
-                    final mode = _filteredModes[index];
-                    final isSelected = _currentIndex == index;
-                    final scale = isSelected ? 1.0 : 0.9;
+                  ),
+                );
+              }
 
-                    return TweenAnimationBuilder(
-                      duration: const Duration(milliseconds: 300),
-                      tween: Tween<double>(begin: scale, end: scale),
-                      curve: Curves.easeOut,
-                      builder: (context, double value, child) {
-                        return Transform.scale(
-                          scale: value,
-                          child: Card(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            elevation: isSelected ? 8 : 2,
-                            color: mode.color,
-                            child: mode.isCustom
-                                ? _buildCustomCard()
-                                : _buildNormalCard(mode),
+              return Column(
+                children: [
+                  const SizedBox(height: 10),
+                  // --- カテゴリ絞り込みドロップダウン ---
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Row(
+                      children: [
+                        const Text(
+                          '絞り込み: ',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF544275),
                           ),
+                        ),
+                        const SizedBox(width: 8),
+                        DropdownButton<String>(
+                          value: _selectedCategory,
+                          isExpanded: false,
+                          icon: const Icon(
+                            Icons.arrow_drop_down,
+                            color: Color(0xFF544275),
+                          ),
+                          style: const TextStyle(
+                            color: Color(0xFF544275),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          items: _categories
+                              .map(
+                                (cat) => DropdownMenuItem(
+                                  value: cat,
+                                  child: Text(cat),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() {
+                                _selectedCategory = val;
+                                _currentIndex = 0;
+                              });
+                              if (_pageController.hasClients) {
+                                _pageController.jumpToPage(0);
+                              }
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  // --- 上半分：スワイプできるカード部分 ---
+                  Expanded(
+                    flex: 5,
+                    child: PageView.builder(
+                      controller: _pageController,
+                      onPageChanged: (index) {
+                        setState(() {
+                          _currentIndex = index;
+                        });
+                      },
+                      itemCount: _filteredModes.length,
+                      itemBuilder: (context, index) {
+                        final mode = _filteredModes[index];
+                        final isSelected = _currentIndex == index;
+                        final scale = isSelected ? 1.0 : 0.9;
+
+                        return TweenAnimationBuilder(
+                          duration: const Duration(milliseconds: 300),
+                          tween: Tween<double>(begin: scale, end: scale),
+                          curve: Curves.easeOut,
+                          builder: (context, double value, child) {
+                            return Transform.scale(
+                              scale: value,
+                              child: Card(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(24),
+                                  side: const BorderSide(
+                                    color: Colors.white,
+                                    width: 2.0,
+                                  ),
+                                ),
+                                elevation: isSelected ? 8 : 2,
+                                color: mode.color,
+                                child: mode.isCustom
+                                    ? _buildCustomCard()
+                                    : _buildNormalCard(mode),
+                              ),
+                            );
+                          },
                         );
                       },
-                    );
-                  },
-                ),
-              ),
+                    ),
+                  ),
 
-              const SizedBox(height: 30),
+                  const SizedBox(height: 30),
 
-              // --- 下半分：スタートボタン ---
-              Expanded(
-                flex: 2,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: _filteredModes[_currentIndex].isCustom
-                      ? _buildCustomBottomArea()
-                      : _buildNormalBottomArea(_filteredModes[_currentIndex]),
-                ),
-              ),
-            ],
-          );
-        },
+                  // --- 下半分：スタートボタン ---
+                  Expanded(
+                    flex: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: _filteredModes[_currentIndex].isCustom
+                          ? _buildCustomBottomArea()
+                          : _buildNormalBottomArea(
+                              _filteredModes[_currentIndex],
+                            ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
       ),
     );
   }
@@ -534,7 +573,6 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
     );
   }
 
-  // --- カード中身（カスタム：ドロップダウン付き） ---
   // --- カード中身（カスタム：ドロップダウン付き） ---
   Widget _buildCustomCard() {
     return Padding(
@@ -668,7 +706,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
                 shape: BoxShape.circle,
                 color: _currentIndex == index
                     ? _filteredModes[_currentIndex].color
-                    : Colors.grey.shade300,
+                    : Colors.white,
               ),
             ),
           ),
@@ -690,6 +728,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
               );
             },
             style: ElevatedButton.styleFrom(
+              side: const BorderSide(color: Colors.white, width: 2.0),
               backgroundColor: mode.color,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -740,6 +779,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
           child: ElevatedButton(
             onPressed: _startCustomMode,
             style: ElevatedButton.styleFrom(
+              side: const BorderSide(color: Colors.white, width: 2.0),
               backgroundColor: Colors.teal,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -761,29 +801,81 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
   }
 
   Widget _buildInputModeSwitch() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            _isManualInputMode ? "手入力モード" : "通常モード",
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          Switch(
-            value: _isManualInputMode,
-            onChanged: (val) {
-              setState(() {
-                _isManualInputMode = val;
-              });
-            },
-          ),
-        ],
+    return Center(
+      child: Container(
+        width: 260, // ここで全体の幅を制限
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white, width: 1.5),
+        ),
+        child: Row(
+          children: [
+            // 通常モードボタン
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isManualInputMode = false;
+                  });
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: !_isManualInputMode
+                        ? const Color(0xFF67568C)
+                        : Colors.transparent,
+                    borderRadius: const BorderRadius.horizontal(
+                      left: Radius.circular(10.5),
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    "通常モード",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: !_isManualInputMode
+                          ? Colors.white
+                          : const Color(0xFF67568C),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            // 手入力モードボタン
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isManualInputMode = true;
+                  });
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: _isManualInputMode
+                        ? const Color(0xFF67568C)
+                        : Colors.transparent,
+                    borderRadius: const BorderRadius.horizontal(
+                      right: Radius.circular(10.5),
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    "手入力モード",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: _isManualInputMode
+                          ? Colors.white
+                          : const Color(0xFF67568C),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

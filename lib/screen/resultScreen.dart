@@ -122,129 +122,191 @@ class _ResultScreenState extends State<ResultScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('結果入力'),
+        backgroundColor: Colors.transparent,
+        title: const Text(
+          '結果入力',
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            color: Color(0xFF544275),
+          ),
+        ),
+        elevation: 0,
+        foregroundColor: const Color(0xFF544275),
+        iconTheme: const IconThemeData(color: Color(0xFF544275)),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Text(
-              'タイム: ${widget.timeTaken.inMinutes}:${(widget.timeTaken.inSeconds % 60).toString().padLeft(2, "0")}',
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-
-            if (widget.fixedScore != null)
-              Text(
-                '手入力モードの採点結果を自動入力しています（${widget.fixedScore}/100）',
-                style: TextStyle(
-                  color: Colors.teal.shade700,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-
-            if (widget.fixedScore != null) const SizedBox(height: 8),
-
-            // プレイヤーカードは固定サイズコンテナ内でスクロール表示
-            SizedBox(
-              height: 390,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: _scoreControllers.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'プレイヤーを追加してください',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      )
-                    : Scrollbar(
-                        thumbVisibility: true,
-                        child: ListView.builder(
-                          itemCount: _scoreControllers.length,
-                          itemBuilder: (context, index) {
-                            return _buildPlayerInputField(index);
-                          },
-                        ),
-                      ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // プレイヤー追加ボタン (手入力モード時は非表示)
-            if (widget.fixedScore == null) ...[
-              ElevatedButton.icon(
-                onPressed: _addPlayer,
-                icon: const Icon(Icons.person_add),
-                label: const Text('プレイヤーを追加'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue.shade50,
-                ),
-              ),
-              const SizedBox(height: 30),
-            ],
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFCAB6F1), Color(0xFFFBE0D1)],
+            stops: [0.2, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
               children: [
-                ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Row(
-                    children: [
-                      SizedBox(width: 4),
-                      Text('戻る'),
-                      SizedBox(width: 4),
-                    ],
+                Text(
+                  'タイム: ${widget.timeTaken.inMinutes}:${(widget.timeTaken.inSeconds % 60).toString().padLeft(2, "0")}',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                ElevatedButton(
-                  onPressed: () async {
-                    List<GameRecord> newRecords = [];
-                    for (int i = 0; i < _scoreControllers.length; i++) {
-                      int score =
-                          widget.fixedScore ??
-                          (int.tryParse(_scoreControllers[i].text) ?? 0);
+                const SizedBox(height: 20),
 
-                      // ★新規か既存かで保存する名前を切り替える
-                      String finalPlayerName = _isNewPlayers[i]
-                          ? _nameControllers[i].text
-                          : _selectedPlayers[i] ?? "名無し";
+                if (widget.fixedScore != null)
+                  Text(
+                    '手入力モードの採点結果を自動入力しています（${widget.fixedScore}/100）',
+                    style: TextStyle(
+                      color: Colors.teal.shade700,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
 
-                      // 名前が空欄だったらスキップする（またはエラーを出す）などの処理も可能
-                      if (finalPlayerName.trim().isEmpty)
-                        finalPlayerName = "名無し";
+                if (widget.fixedScore != null) const SizedBox(height: 8),
 
-                      newRecords.add(
-                        GameRecord(
-                          playerName: finalPlayerName,
-                          date: DateTime.now(),
-                          time:
-                              "${widget.timeTaken.inMinutes.toString().padLeft(2, "0")}:${(widget.timeTaken.inSeconds % 60).toString().padLeft(2, "0")}",
-                          mode: widget.mode,
-                          score: score,
+                // プレイヤーカードは固定サイズコンテナ内でスクロール表示
+                SizedBox(
+                  height: 500,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: _scoreControllers.isEmpty
+                              ? const Center(
+                                  child: Text(
+                                    'プレイヤーを追加してください',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                )
+                              : Scrollbar(
+                                  thumbVisibility: true,
+                                  child: ListView.builder(
+                                    padding: EdgeInsets.only(
+                                      bottom: widget.fixedScore == null
+                                          ? 80.0
+                                          : 8.0,
+                                    ),
+                                    itemCount: _scoreControllers.length,
+                                    itemBuilder: (context, index) {
+                                      return _buildPlayerInputField(index);
+                                    },
+                                  ),
+                                ),
                         ),
-                      );
-                    }
+                        if (widget.fixedScore == null)
+                          Positioned(
+                            bottom: 12,
+                            left: 0,
+                            right: 0,
+                            child: Center(
+                              child: OutlinedButton.icon(
+                                onPressed: _addPlayer,
+                                icon: const Icon(Icons.person_add),
+                                label: const Text('プレイヤーを追加'),
+                                style: OutlinedButton.styleFrom(
+                                  backgroundColor: Colors.white.withOpacity(
+                                    0.85,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 12,
+                                  ),
+                                  side: const BorderSide(
+                                    color: Color(0xFF544275),
+                                  ),
+                                  foregroundColor: const Color(0xFF544275),
+                                  textStyle: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
 
-                    await _saveAllToStorage(newRecords);
+                const SizedBox(height: 30),
 
-                    if (mounted) {
-                      Navigator.of(context).popUntil((route) => route.isFirst);
-                    }
-                  },
-                  child: const Text('保存してホームへ'),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      List<GameRecord> newRecords = [];
+                      for (int i = 0; i < _scoreControllers.length; i++) {
+                        int score =
+                            widget.fixedScore ??
+                            (int.tryParse(_scoreControllers[i].text) ?? 0);
+
+                        // ★新規か既存かで保存する名前を切り替える
+                        String finalPlayerName = _isNewPlayers[i]
+                            ? _nameControllers[i].text
+                            : _selectedPlayers[i] ?? "名無し";
+
+                        // 名前が空欄だったらスキップする（またはエラーを出す）などの処理も可能
+                        if (finalPlayerName.trim().isEmpty)
+                          finalPlayerName = "名無し";
+
+                        newRecords.add(
+                          GameRecord(
+                            playerName: finalPlayerName,
+                            date: DateTime.now(),
+                            time:
+                                "${widget.timeTaken.inMinutes.toString().padLeft(2, "0")}:${(widget.timeTaken.inSeconds % 60).toString().padLeft(2, "0")}",
+                            mode: widget.mode,
+                            score: score,
+                          ),
+                        );
+                      }
+
+                      await _saveAllToStorage(newRecords);
+
+                      if (mounted) {
+                        Navigator.of(
+                          context,
+                        ).popUntil((route) => route.isFirst);
+                      }
+                    },
+                    child: const Text('保存してホームへ'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF67568C), // ホームと同じ紫
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 14,
+                      ),
+                      side: const BorderSide(color: Colors.white, width: 2.0),
+                      textStyle: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
