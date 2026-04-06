@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
     );
 
     return MaterialApp(
-      title: '100マス計算練習',
+      title: '100マス基礎練習',
       theme: baseTheme.copyWith(
         textTheme: GoogleFonts.notoSansJpTextTheme(baseTheme.textTheme),
         primaryTextTheme: GoogleFonts.notoSansJpTextTheme(

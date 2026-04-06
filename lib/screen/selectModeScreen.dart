@@ -344,7 +344,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         title: const Text(
-          '計算の種類を選ぶ',
+          '100マスの種類を選ぶ',
           style: TextStyle(
             fontWeight: FontWeight.w900,
             color: Color(0xFF544275),

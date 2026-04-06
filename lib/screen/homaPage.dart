@@ -310,7 +310,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               ),
                               const SizedBox(width: 8),
                               const Text(
-                                '100マス計算練習',
+                                '100マス基礎練習',
                                 style: TextStyle(
                                   fontSize: 28,
                                   fontWeight: FontWeight.w900,
@@ -336,7 +336,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 size: 28,
                                 color: Colors.white,
                               ),
-                              text: '100マス計算をする',
+                              text: '100マス練習をする',
                               onPressed: () async {
                                 await Navigator.push(
                                   context,
