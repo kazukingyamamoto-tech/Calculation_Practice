@@ -10,7 +10,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _isPhoneKeypad = false;
-  String _scoreMethod = '独自スコア';
+  String _scoreMethod = '秒間正解数';
 
   @override
   void initState() {
@@ -22,7 +22,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _isPhoneKeypad = prefs.getBool('isPhoneKeypad') ?? false;
-      _scoreMethod = prefs.getString('scoreMethod') ?? '独自スコア';
+      _scoreMethod = prefs.getString('scoreMethod') ?? '秒間正解数';
     });
   }
 
@@ -165,7 +165,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       RadioListTile<String>(
                         title: const Text('秒間正解数'),
-                        subtitle: const Text('1秒あたりに何問解けたかで評価します'),
+                        subtitle: const Text('1秒あたりに何問解けたかで評価します（デフォルト）'),
                         value: '秒間正解数',
                         groupValue: _scoreMethod,
                         activeColor: const Color(0xFF544275),
@@ -174,11 +174,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         },
                       ),
                       RadioListTile<String>(
-                        title: const Text('独自スコア'),
-                        subtitle: const Text(
-                          '((正解数 - 不正解数) ÷ かかった時間) × 100（デフォルト）',
-                        ),
-                        value: '独自スコア',
+                        title: const Text('クリア時間'),
+                        subtitle: const Text('かかった時間（秒）で評価します'),
+                        value: 'クリア時間',
                         groupValue: _scoreMethod,
                         activeColor: const Color(0xFF544275),
                         onChanged: (String? value) {

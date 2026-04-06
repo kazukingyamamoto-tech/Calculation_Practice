@@ -13,7 +13,7 @@ class RecordScreen extends StatefulWidget {
 
 class _RecordScreenState extends State<RecordScreen> {
   List<GameRecord> _records = [];
-  String _scoreMethod = '独自スコア';
+  String _scoreMethod = '秒間正解数';
 
   @override
   void initState() {
@@ -25,7 +25,7 @@ class _RecordScreenState extends State<RecordScreen> {
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _scoreMethod = prefs.getString('scoreMethod') ?? '独自スコア';
+      _scoreMethod = prefs.getString('scoreMethod') ?? '秒間正解数';
     });
   }
 
@@ -75,15 +75,14 @@ class _RecordScreenState extends State<RecordScreen> {
     int seconds = int.parse(parts[1]);
     double totalSec = minutes * 60.0 + seconds;
 
+    if (_scoreMethod == 'クリア時間') {
+      return totalSec;
+    }
+
     if (totalSec < 1) return 0; // 0除算エラー防止
 
     if (_scoreMethod == '秒間正解数') {
       return double.parse((r.score / totalSec).toStringAsFixed(1));
-    } else if (_scoreMethod == '独自スコア') {
-      int incorrectAnswers = 100 - r.score;
-      return double.parse(
-        (((r.score - incorrectAnswers) / totalSec) * 100).toStringAsFixed(1),
-      );
     }
 
     return r.score.toDouble(); // デフォルト
@@ -150,17 +149,24 @@ class _RecordScreenState extends State<RecordScreen> {
   }
 
   Widget _buildLineChart() {
-    final data = _getChartData();
+    final dailyBest = _getChartData();
 
-    if (data.isEmpty) {
-      return const Center(child: Text("データが足りません"));
-    }
+    DateTime now = DateTime.now();
+    DateTime endDate = DateTime(now.year, now.month, now.day);
+    DateTime startDate = endDate.subtract(const Duration(days: 6));
 
     List<FlSpot> spots = [];
-    for (int i = 0; i < data.length; i++) {
-      final r = data[i];
-      double efficiency = _calculateEfficiency(r);
-      spots.add(FlSpot(i.toDouble(), efficiency));
+    for (int i = 0; i < 7; i++) {
+      DateTime targetDate = startDate.add(Duration(days: i));
+      String dateKey =
+          "${targetDate.year}-${targetDate.month}-${targetDate.day}";
+
+      if (dailyBest.containsKey(dateKey)) {
+        double efficiency = _calculateEfficiency(dailyBest[dateKey]!);
+        spots.add(FlSpot(i.toDouble(), efficiency));
+      } else {
+        spots.add(FlSpot.nullSpot);
+      }
     }
 
     final barData = LineChartBarData(
@@ -179,20 +185,31 @@ class _RecordScreenState extends State<RecordScreen> {
       padding: const EdgeInsets.only(top: 40, right: 20, left: 10, bottom: 20),
       child: LineChart(
         LineChartData(
-          showingTooltipIndicators: spots.asMap().entries.map((entry) {
-            return ShowingTooltipIndicators([
-              LineBarSpot(barData, 0, entry.value),
-            ]);
-          }).toList(),
+          minX: 0,
+          maxX: 6,
+          minY: 0,
+          maxY: _scoreMethod == '正解数' ? 100 : null,
+          showingTooltipIndicators: spots
+              .asMap()
+              .entries
+              .map((entry) {
+                if (entry.value == FlSpot.nullSpot) return null;
+                return ShowingTooltipIndicators([
+                  LineBarSpot(barData, 0, entry.value),
+                ]);
+              })
+              .where((e) => e != null)
+              .cast<ShowingTooltipIndicators>()
+              .toList(),
           gridData: FlGridData(show: true, drawVerticalLine: false),
           lineTouchData: LineTouchData(
             touchTooltipData: LineTouchTooltipData(
               getTooltipItems: (touchedSpots) {
                 return touchedSpots.map((spot) {
                   return LineTooltipItem(
-                    _scoreMethod == '正解数'
-                        ? spot.y.toInt().toString()
-                        : spot.y.toStringAsFixed(1), // 正解数は整数、その他は小数第1位
+                    _scoreMethod == '秒間正解数'
+                        ? spot.y.toStringAsFixed(1)
+                        : spot.y.toInt().toString(), // 秒間正解数は小数第1位、その他は整数
                     const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -209,9 +226,9 @@ class _RecordScreenState extends State<RecordScreen> {
                 reservedSize: 35, // 1桁のために少し幅を狭める
                 getTitlesWidget: (value, meta) {
                   return Text(
-                    _scoreMethod == '正解数'
-                        ? value.toInt().toString()
-                        : value.toStringAsFixed(1), // 正解数は整数、その他は小数第1位
+                    _scoreMethod == '秒間正解数'
+                        ? value.toStringAsFixed(1)
+                        : value.toInt().toString(), // 秒間正解数は小数第1位、その他は整数
                     style: const TextStyle(fontSize: 10),
                   );
                 },
@@ -220,13 +237,17 @@ class _RecordScreenState extends State<RecordScreen> {
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
+                interval: 1,
                 getTitlesWidget: (value, meta) {
                   int index = value.toInt();
-                  if (index >= 0 && index < data.length) {
-                    DateTime d = data[index].date;
-                    return Text(
-                      "${d.month}/${d.day}",
-                      style: const TextStyle(fontSize: 10),
+                  if (index >= 0 && index < 7) {
+                    DateTime d = startDate.add(Duration(days: index));
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        "${d.month}/${d.day}",
+                        style: const TextStyle(fontSize: 10),
+                      ),
                     );
                   }
                   return const Text("");
@@ -251,8 +272,8 @@ class _RecordScreenState extends State<RecordScreen> {
   }
 
   // 3. グラフ用のデータを作成する
-  List<GameRecord> _getChartData() {
-    if (_selectedPlayer == null || _selectedMode == null) return [];
+  Map<String, GameRecord> _getChartData() {
+    if (_selectedPlayer == null || _selectedMode == null) return {};
 
     var filtered = _records
         .where(
@@ -275,8 +296,13 @@ class _RecordScreenState extends State<RecordScreen> {
         var best = dailyBest[dateKey]!;
         double bestEff = _calculateEfficiency(best);
 
+        bool isBetter = _scoreMethod == 'クリア時間'
+            ? currentEfficiency <
+                  bestEff // 時間は少ない方が良い
+            : currentEfficiency > bestEff; // その他は高い方が良い
+
         // より効率が高い場合は上書きする
-        if (currentEfficiency > bestEff) {
+        if (isBetter) {
           dailyBest[dateKey] = r;
         }
         // 【任意】効率が全く同じ場合は、スコア単体が高い方を優先するなどのルールを追加できます
@@ -286,9 +312,7 @@ class _RecordScreenState extends State<RecordScreen> {
       }
     }
 
-    var result = dailyBest.values.toList();
-    result.sort((a, b) => a.date.compareTo(b.date)); // X軸の描画のために古い順に並べる
-    return result;
+    return dailyBest;
   }
 
   @override

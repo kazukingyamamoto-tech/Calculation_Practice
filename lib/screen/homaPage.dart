@@ -11,6 +11,18 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final List<String> _tutorialNormalImages = [
+    'assets/tutorial/normal_01.png',
+    'assets/tutorial/normal_02.png',
+    'assets/tutorial/normal_03.png',
+  ];
+
+  final List<String> _tutorialManualImages = [
+    'assets/tutorial/manual_01.png',
+    'assets/tutorial/manual_02.png',
+    'assets/tutorial/manual_03.png',
+  ];
+
   // 共通のボタン作成メソッド
   Widget _buildCustomButton({
     required Widget icon,
@@ -62,6 +74,158 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  void _showTutorialDialog() {
+    final pageController = PageController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        String selectedMode = 'normal';
+        int currentPage = 0;
+        return StatefulBuilder(
+          builder: (context, setLocalState) {
+            final images = selectedMode == 'normal'
+                ? _tutorialNormalImages
+                : _tutorialManualImages;
+
+            return Dialog(
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 24,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'チュートリアル',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF544275),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {
+                              setLocalState(() {
+                                selectedMode = 'normal';
+                                currentPage = 0;
+                              });
+                              pageController.jumpToPage(0);
+                            },
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xFF544275)),
+                              foregroundColor: const Color(0xFF544275),
+                              backgroundColor: selectedMode == 'normal'
+                                  ? const Color(0xFFEFE6FF)
+                                  : Colors.transparent,
+                            ),
+                            child: const Text('通常モード'),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {
+                              setLocalState(() {
+                                selectedMode = 'manual';
+                                currentPage = 0;
+                              });
+                              pageController.jumpToPage(0);
+                            },
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xFF544275)),
+                              foregroundColor: const Color(0xFF544275),
+                              backgroundColor: selectedMode == 'manual'
+                                  ? const Color(0xFFEFE6FF)
+                                  : Colors.transparent,
+                            ),
+                            child: const Text('手入力モード'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 360,
+                      child: PageView.builder(
+                        controller: pageController,
+                        itemCount: images.length,
+                        onPageChanged: (index) {
+                          setLocalState(() {
+                            currentPage = index;
+                          });
+                        },
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.asset(
+                                images[index],
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    height: 200,
+                                    color: const Color(0xFFF2F2F2),
+                                    alignment: Alignment.center,
+                                    child: const Text(
+                                      '画像が見つかりません',
+                                      style: TextStyle(
+                                        color: Color(0xFF544275),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(
+                        images.length,
+                        (index) => Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          width: currentPage == index ? 10 : 8,
+                          height: currentPage == index ? 10 : 8,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: currentPage == index
+                                ? const Color(0xFF67568C)
+                                : const Color(0xFFD9DAE0),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('閉じる'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    ).then((_) => pageController.dispose());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,6 +249,18 @@ class _MyHomePageState extends State<MyHomePage> {
               child: SafeArea(
                 child: Stack(
                   children: [
+                    Positioned(
+                      top: 10,
+                      left: 10,
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.help_outline,
+                          color: Color(0xFF544275),
+                          size: 32,
+                        ),
+                        onPressed: _showTutorialDialog,
+                      ),
+                    ),
                     Positioned(
                       top: 10,
                       right: 10,
@@ -170,51 +346,55 @@ class _MyHomePageState extends State<MyHomePage> {
                           const SizedBox(height: 40),
 
                           // 「100マス計算をする」ボタン
-                          _buildCustomButton(
-                            icon: const Icon(
-                              Icons.grid_4x4,
-                              size: 28,
-                              color: Colors.white,
+                          Container(
+                            child: _buildCustomButton(
+                              icon: const Icon(
+                                Icons.grid_4x4,
+                                size: 28,
+                                color: Colors.white,
+                              ),
+                              text: '100マス計算をする',
+                              onPressed: () async {
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const SelectModeScreen(),
+                                  ),
+                                );
+                              },
                             ),
-                            text: '100マス計算をする',
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const SelectModeScreen(),
-                                ),
-                              );
-                            },
                           ),
                           const SizedBox(height: 20),
 
                           // 「記録を見る」ボタン
-                          _buildCustomButton(
-                            icon: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.bar_chart,
-                                  size: 28,
-                                  color: Colors.white,
-                                ),
-                                Icon(
-                                  Icons.emoji_events,
-                                  size: 24,
-                                  color: Colors.white,
-                                ),
-                              ],
+                          Container(
+                            child: _buildCustomButton(
+                              icon: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.bar_chart,
+                                    size: 28,
+                                    color: Colors.white,
+                                  ),
+                                  Icon(
+                                    Icons.emoji_events,
+                                    size: 24,
+                                    color: Colors.white,
+                                  ),
+                                ],
+                              ),
+                              text: '記録を見る',
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const RecordScreen(),
+                                  ),
+                                );
+                              },
                             ),
-                            text: '記録を見る',
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const RecordScreen(),
-                                ),
-                              );
-                            },
                           ),
                         ],
                       ),
