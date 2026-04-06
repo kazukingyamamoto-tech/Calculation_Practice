@@ -701,7 +701,10 @@ class _TemplateMultiplicationBrainState
                 width: headerSize,
                 height: headerSize,
                 child: Container(
-                  color: Colors.grey.shade100,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    border: Border.all(color: Colors.grey.shade500),
+                  ),
                   alignment: Alignment.center,
                   child: const Text(
                     '',
@@ -1177,7 +1180,10 @@ class _TemplateMultiplicationBrainState
                       children: [
                         Container(
                           height: cellSize,
-                          color: Colors.grey.shade100,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            border: Border.all(color: Colors.grey.shade400),
+                          ),
                         ),
                         for (int c = 0; c < 10; c++)
                           Container(

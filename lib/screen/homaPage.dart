@@ -293,25 +293,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                 size: 150,
                                 color: Color(0xFF544275),
                               ),
+
                               // 数字や記号の装飾イメージ
-                              Positioned(
-                                top: 10,
-                                right: 10,
-                                child: Text(
-                                  '1 2 3\n + x',
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: const Color(0xFFDCA66A),
-                                    shadows: [
-                                      Shadow(
-                                        color: Colors.white.withOpacity(0.8),
-                                        blurRadius: 10,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
                             ],
                           ),
                           const SizedBox(height: 30),
@@ -401,53 +384,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   ],
                 ),
-              ),
-            ),
-
-            // 画面下部のステータス表示エリア
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              decoration: const BoxDecoration(
-                color: Color(0xFFFCF5ED), // 少し黄味がかったオフホワイト
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(24),
-                  topRight: Radius.circular(24),
-                ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    '現在 3日連続！ 🏆',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF5A4A41), // 濃い茶色
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // プログレスインジケーター（ドット）
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(8, (index) {
-                      final isActive = index < 2; // 最初の2つ（3日目進行中）をアクティブに
-                      return Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 5),
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: isActive
-                              ? const Color(0xFFFAAD74) // アクティブなオレンジ
-                              : const Color(0xFFD9DAE0), // 非アクティブなグレー
-                        ),
-                      );
-                    }),
-                  ),
-                  const SizedBox(height: 10), // 下部の余白
-                ],
               ),
             ),
           ],
