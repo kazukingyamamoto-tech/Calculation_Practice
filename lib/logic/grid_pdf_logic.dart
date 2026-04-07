@@ -71,10 +71,10 @@ Future<void> printGridAsPdf({
               final maxCellByWidth = constraints!.maxWidth / 11;
               final maxCellByHeight =
                   (constraints.maxHeight - titleHeightBudget) / 11;
-              final cellSize = min(
+              final double cellSize = min(
                 baseCellSize,
                 min(maxCellByWidth, maxCellByHeight),
-              ).clamp(20.0, baseCellSize);
+              ).clamp(20.0, baseCellSize).toDouble();
 
               return pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.center,
