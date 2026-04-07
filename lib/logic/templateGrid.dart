@@ -74,6 +74,8 @@ class _TemplateMultiplicationBrainState
   final TransformationController _manualPanController =
       TransformationController();
   final GlobalKey _manualViewportKey = GlobalKey();
+  final GlobalKey _timePanelKey = GlobalKey();
+  double _timePanelHeight = 0;
 
   late final List<List<String>> _manualInputs;
   late final List<List<bool?>> _cellCorrectness;
@@ -431,6 +433,50 @@ class _TemplateMultiplicationBrainState
     });
   }
 
+  double _manualKeypadButtonHeight(BuildContext context) {
+    final double screenHeight = MediaQuery.of(context).size.height;
+    return screenHeight * 0.065;
+  }
+
+  double _estimateManualKeypadHeight(BuildContext context) {
+    final textScale = MediaQuery.textScaleFactorOf(context);
+    final buttonHeight = _manualKeypadButtonHeight(context);
+
+    const double containerPadding = 16;
+    const double containerMargin = 8;
+    const double verticalGaps = 7 + 13 + 6 + 6 + 8;
+
+    final double titleHeight = (20 * textScale) + 6;
+    final double subtitleHeight = (15 * textScale) + 4;
+
+    return containerMargin +
+        containerPadding +
+        titleHeight +
+        subtitleHeight +
+        verticalGaps +
+        (buttonHeight * 4);
+  }
+
+  void _updateTimePanelHeight() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final context = _timePanelKey.currentContext;
+      if (context == null) {
+        return;
+      }
+
+      final newHeight = context.size?.height ?? 0;
+      if (newHeight <= 0) {
+        return;
+      }
+
+      if ((newHeight - _timePanelHeight).abs() > 0.5 && mounted) {
+        setState(() {
+          _timePanelHeight = newHeight;
+        });
+      }
+    });
+  }
+
   Widget _buildKeyButton({
     String? text,
     IconData? icon,
@@ -438,12 +484,12 @@ class _TemplateMultiplicationBrainState
     double fontSize = 20,
     required VoidCallback onTap,
   }) {
-    final double screenHeight = MediaQuery.of(context).size.height;
+    final double buttonHeight = _manualKeypadButtonHeight(context);
 
     return Expanded(
       flex: flex,
       child: SizedBox(
-        height: screenHeight * 0.065, // Pixel 8aの比率 (約60px) に基づく
+        height: buttonHeight, // Pixel 8aの比率 (約60px) に基づく
         child: FilledButton(
           onPressed: _showAnswers ? null : onTap,
           style: FilledButton.styleFrom(
@@ -1254,36 +1300,68 @@ class _TemplateMultiplicationBrainState
 
     return Padding(
       padding: const EdgeInsets.all(12.0),
-      child: Column(
-        children: [
-          _buildTimeAndCheckPanel(),
-          const SizedBox(height: 8),
-          if (!_isStarted || _isFinished) ...[
-            _buildNormalModeGrid(
-              bottomWidget: showScore
-                  ? Text(
-                      "正解数: $_score / 100",
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.teal,
-                      ),
-                    )
-                  : null,
-            ),
-          ] else ...[
-            Expanded(
-              flex: 4,
-              child: _buildManualScrollableGrid(showOverview: false),
-            ),
-            const SizedBox(height: 6),
-            if (showKeypad)
-              Expanded(
-                flex: 5,
-                child: SingleChildScrollView(child: _buildManualKeypad()),
-              ),
-          ],
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          _updateTimePanelHeight();
+
+          final availableHeight = constraints.maxHeight;
+          final panelHeight = _timePanelHeight > 0 ? _timePanelHeight : 92.0;
+          final keypadHeight = _estimateManualKeypadHeight(context);
+          const double spacing = 14.0; // 8 + 6
+          const double minGridHeight = 120.0;
+          const double minKeypadHeight = 200.0;
+
+          double gridHeight =
+              availableHeight - panelHeight - spacing - keypadHeight;
+          final maxGridHeightForKeypad =
+              availableHeight - panelHeight - spacing - minKeypadHeight;
+          gridHeight = min(gridHeight, maxGridHeightForKeypad);
+          gridHeight = gridHeight.clamp(minGridHeight, availableHeight);
+
+          final keypadAvailableHeight =
+              (availableHeight - panelHeight - spacing - gridHeight).clamp(
+                0.0,
+                availableHeight,
+              );
+          final keypadNeedsScroll = keypadAvailableHeight < keypadHeight;
+
+          return Column(
+            children: [
+              SizedBox(key: _timePanelKey, child: _buildTimeAndCheckPanel()),
+              const SizedBox(height: 8),
+              if (!_isStarted || _isFinished) ...[
+                _buildNormalModeGrid(
+                  bottomWidget: showScore
+                      ? Text(
+                          "正解数: $_score / 100",
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.teal,
+                          ),
+                        )
+                      : null,
+                ),
+              ] else ...[
+                SizedBox(
+                  height: gridHeight,
+                  child: _buildManualScrollableGrid(
+                    height: gridHeight,
+                    showOverview: false,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                if (showKeypad)
+                  SizedBox(
+                    height: keypadAvailableHeight,
+                    child: keypadNeedsScroll
+                        ? SingleChildScrollView(child: _buildManualKeypad())
+                        : _buildManualKeypad(),
+                  ),
+              ],
+            ],
+          );
+        },
       ),
     );
   }
