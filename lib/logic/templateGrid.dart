@@ -641,6 +641,7 @@ class _TemplateMultiplicationBrainState
               ),
             ],
           ),
+          const SizedBox(height: 6),
         ],
       ),
     );
