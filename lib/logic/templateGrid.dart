@@ -583,12 +583,12 @@ class _TemplateMultiplicationBrainState
         children: [
           const Text(
             'セルをタップして入力',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
-          const SizedBox(height: 7),
+          const SizedBox(height: 3),
           Text(
             '選択中セル: ${_selectedRow + 1}行 ${_selectedCol + 1}列',
-            style: TextStyle(color: Colors.grey.shade700, fontSize: 15),
+            style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
           ),
           const SizedBox(height: 13),
           Row(
