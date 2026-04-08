@@ -123,6 +123,12 @@ class _ResultScreenState extends State<ResultScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final double screenHeight = MediaQuery.of(context).size.height;
+    final double safeVertical = MediaQuery.of(context).padding.vertical;
+    final double reservedHeight = widget.fixedScore != null ? 270.0 : 240.0;
+    final double playerCardHeight =
+        (screenHeight - safeVertical - reservedHeight).clamp(300.0, 520.0);
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -176,7 +182,7 @@ class _ResultScreenState extends State<ResultScreen> {
 
                 // プレイヤーカードは固定サイズコンテナ内でスクロール表示
                 SizedBox(
-                  height: 500,
+                  height: playerCardHeight,
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(

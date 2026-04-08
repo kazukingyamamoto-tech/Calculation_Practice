@@ -12,15 +12,31 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final List<String> _tutorialNormalImages = [
-    'assets/tutorial/normal_01.png',
-    'assets/tutorial/normal_02.png',
-    'assets/tutorial/normal_03.png',
+    'assets/usual_1.png',
+    'assets/usual_2.png',
+    'assets/usual_3.png',
+    'assets/usual_4.png',
+  ];
+
+  final List<String> _tutorialNormalCaptions = [
+    'プレイする100マスを選択したら、\n通常モードを選んでスタートしよう！',
+    '印刷ボタンから100マスを印刷したら、\nスタートを押して答えを書き込もう！',
+    'すべてのマスに答えを書き込んだら、\n答え合わせをしよう！',
+    '名前と正解できた数を入力して、\n記録を保存しよう！',
   ];
 
   final List<String> _tutorialManualImages = [
-    'assets/tutorial/manual_01.png',
-    'assets/tutorial/manual_02.png',
-    'assets/tutorial/manual_03.png',
+    'assets/manual_1.png',
+    'assets/manual_2.png',
+    'assets/manual_3.png',
+    'assets/manual_4.png',
+  ];
+
+  final List<String> _tutorialManualCaptions = [
+    'プレイする100マスを選択したら、\n手入力モードを選んでスタートしよう！',
+    '青い枠線で囲まれているマスに、\n下のキーパッドを使って答えを入力！',
+    '答え合わせを押すと自動で採点！\n（答えを見るボタンから正解が見よう！）',
+    '正解できた数を確認したら、\n名前を入力して、記録を保存しよう！',
   ];
 
   // 共通のボタン作成メソッド
@@ -86,6 +102,9 @@ class _MyHomePageState extends State<MyHomePage> {
             final images = selectedMode == 'normal'
                 ? _tutorialNormalImages
                 : _tutorialManualImages;
+            final captions = selectedMode == 'normal'
+                ? _tutorialNormalCaptions
+                : _tutorialManualCaptions;
 
             return Dialog(
               insetPadding: const EdgeInsets.symmetric(
@@ -166,25 +185,41 @@ class _MyHomePageState extends State<MyHomePage> {
                         itemBuilder: (context, index) {
                           return Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 4),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.asset(
-                                images[index],
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    height: 200,
-                                    color: const Color(0xFFF2F2F2),
-                                    alignment: Alignment.center,
-                                    child: const Text(
-                                      '画像が見つかりません',
-                                      style: TextStyle(
-                                        color: Color(0xFF544275),
-                                      ),
+                            child: Column(
+                              children: [
+                                Expanded(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.asset(
+                                      images[index],
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return Container(
+                                              color: const Color(0xFFF2F2F2),
+                                              alignment: Alignment.center,
+                                              child: const Text(
+                                                '画像が見つかりません',
+                                                style: TextStyle(
+                                                  color: Color(0xFF544275),
+                                                ),
+                                              ),
+                                            );
+                                          },
                                     ),
-                                  );
-                                },
-                              ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  captions[index],
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF544275),
+                                  ),
+                                ),
+                              ],
                             ),
                           );
                         },

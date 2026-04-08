@@ -504,7 +504,7 @@ class _TemplateMultiplicationBrainState
             disabledBackgroundColor: Colors.grey.shade200,
             disabledForegroundColor: Colors.grey.shade500,
             padding: EdgeInsets.zero,
-            side: const BorderSide(color: Color(0xFF544275), width: 1.5),
+            side: const BorderSide(color: Color(0xFF544275), width: 2.0),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
@@ -525,10 +525,10 @@ class _TemplateMultiplicationBrainState
 
   Widget _buildManualKeypad() {
     final extraInputKey =
-      (widget.mode == "少数の掛け算" ||
-          widget.mode == "かけ算（少数）" ||
-          widget.mode.contains("割り算の少数") ||
-          widget.mode.contains("わり算（少数）"))
+        (widget.mode == "少数の掛け算" ||
+            widget.mode == "かけ算（少数）" ||
+            widget.mode.contains("割り算の少数") ||
+            widget.mode.contains("わり算（少数）"))
         ? '.'
         : '/';
 
@@ -666,16 +666,15 @@ class _TemplateMultiplicationBrainState
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 2.0),
           child: Center(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                _manualInputs[row][col],
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: _showAnswers ? 14 : 28, // 答え合わせ中は小さく
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
-                ),
+            child: Text(
+              _manualInputs[row][col],
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 4,
+                fontWeight: FontWeight.w700,
+                color: Colors.black87,
               ),
             ),
           ),
@@ -683,24 +682,40 @@ class _TemplateMultiplicationBrainState
       );
     }
 
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Text(
-        _showAnswers
-            ? widget.calculateAnswer(
-                rowNumbers[col],
-                colNumbers[row],
-                widget.mode,
-              )
-            : "",
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: Color.fromARGB(255, 164, 24, 24),
-          fontStyle: FontStyle.italic,
-        ),
+    final answerText = _showAnswers
+        ? widget.calculateAnswer(rowNumbers[col], colNumbers[row], widget.mode)
+        : "";
+
+    final double answerFontSize = _answerFontSize(answerText, base: 8);
+
+    return Text(
+      answerText,
+      textAlign: TextAlign.center,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        fontSize: answerFontSize,
+        fontWeight: FontWeight.bold,
+        color: const Color.fromARGB(255, 164, 24, 24),
       ),
     );
+  }
+
+  double _answerFontSize(String text, {required double base}) {
+    final length = text.length;
+    if (length == 1) {
+      return base + 4;
+    }
+    if (length == 2) {
+      return base + 3;
+    }
+    if (length == 3) {
+      return base + 3;
+    }
+    if (length == 4) {
+      return base + 1;
+    }
+    return base;
   }
 
   Widget _buildAxisText(String text, {double fontSize = 28}) {
@@ -978,7 +993,11 @@ class _TemplateMultiplicationBrainState
   Widget _buildAnswerOnlyGrid() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final cellSize = (constraints.maxWidth / 11).clamp(24.0, 36.0);
+        final maxCellByWidth = constraints.maxWidth / 11;
+        final maxCellByHeight = constraints.hasBoundedHeight
+            ? constraints.maxHeight / 11
+            : maxCellByWidth;
+        final cellSize = min(maxCellByWidth, maxCellByHeight).clamp(20.0, 34.0);
 
         return SingleChildScrollView(
           child: Table(
@@ -1020,19 +1039,26 @@ class _TemplateMultiplicationBrainState
                         color: Colors.white,
                         padding: const EdgeInsets.symmetric(horizontal: 2),
                         alignment: Alignment.center,
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            widget.calculateAnswer(
-                              rowNumbers[j],
-                              colNumbers[i],
-                              widget.mode,
+                        child: Text(
+                          widget.calculateAnswer(
+                            rowNumbers[j],
+                            colNumbers[i],
+                            widget.mode,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: _answerFontSize(
+                              widget.calculateAnswer(
+                                rowNumbers[j],
+                                colNumbers[i],
+                                widget.mode,
+                              ),
+                              base: 6,
                             ),
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Color.fromARGB(255, 164, 24, 24),
-                            ),
+                            fontWeight: FontWeight.bold,
+                            color: const Color.fromARGB(255, 164, 24, 24),
                           ),
                         ),
                       ),
@@ -1074,11 +1100,11 @@ class _TemplateMultiplicationBrainState
               horizontal: horizontalPadding,
               vertical: buttonVerticalPadding,
             ),
-            side: const BorderSide(color: Color(0xFF544275)),
+            side: const BorderSide(color: Color(0xFF544275), width: 2.0),
             foregroundColor: const Color(0xFF544275),
             textStyle: TextStyle(
               fontSize: buttonFontSize,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
             ),
           );
         }
@@ -1127,47 +1153,26 @@ class _TemplateMultiplicationBrainState
         final buttonGroup = Wrap(
           alignment: WrapAlignment.end,
           crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: isTiny ? 6.0 : 8.0,
+          spacing: isTiny ? 10.0 : 12.0,
           runSpacing: 6,
           children: [
             if (showPrintButton)
               OutlinedButton.icon(
                 key: const ValueKey('printButton'),
                 onPressed: _onPrintPressed,
-                style: OutlinedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: printButtonHorizontalPadding,
-                    vertical: buttonVerticalPadding,
-                  ),
-                ),
+                style: buildOutlinedStyle(printButtonHorizontalPadding),
                 icon: const Icon(Icons.print),
-                label: Text(
-                  "印刷",
-                  style: TextStyle(
-                    fontSize: buttonFontSize,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                label: Text("印刷", style: TextStyle(fontSize: buttonFontSize)),
               ),
             if (widget.manualInputMode && _isFinished)
               OutlinedButton.icon(
                 key: const ValueKey('answersButton'),
                 onPressed: _showAnswersDialog,
-                style: OutlinedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: defaultButtonHorizontalPadding,
-                    vertical: buttonVerticalPadding,
-                  ),
-                  side: const BorderSide(color: Color(0xFF544275)),
-                  foregroundColor: const Color(0xFF544275),
-                ),
+                style: buildOutlinedStyle(defaultButtonHorizontalPadding),
                 icon: const Icon(Icons.grid_on),
                 label: Text(
                   "答えを見る",
-                  style: TextStyle(
-                    fontSize: buttonFontSize,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: buttonFontSize),
                 ),
               ),
             actionButton,
@@ -1180,9 +1185,7 @@ class _TemplateMultiplicationBrainState
             horizontal: horizontalPadding,
             vertical: verticalPadding,
           ),
-          decoration: BoxDecoration(
-            color: Colors.transparent,
-          ),
+          decoration: BoxDecoration(color: Colors.transparent),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
