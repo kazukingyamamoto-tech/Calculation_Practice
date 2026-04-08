@@ -70,6 +70,12 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         _colMinCtrl.text = "1";
         _colMaxCtrl.text = "10"; // 1の段は簡単すぎるので2〜9など
         break;
+      case '上級のわり算（分数）':
+        _rowMinCtrl.text = "34";
+        _rowMaxCtrl.text = "50";
+        _colMinCtrl.text = "24";
+        _colMaxCtrl.text = "40"; // 1の段は簡単すぎるので2〜9など
+        break;
       case 'かけ算（少数）':
         _rowMinCtrl.text = "11";
         _rowMaxCtrl.text = "99";
@@ -205,10 +211,10 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       color: Colors.blueGrey,
       imagePath: "assets/mode6.png",
       onStart: (context, isManualInputMode) => TemplateMultiplication(
-        rowMin: 11,
+        rowMin: 34,
         rowMax: 50,
-        colMin: 11,
-        colMax: 50,
+        colMin: 24,
+        colMax: 40,
         mode: "上級のわり算（分数）",
         manualInputMode: isManualInputMode,
       ),
