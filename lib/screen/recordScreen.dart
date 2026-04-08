@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
+import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../logic/GameRecord.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:file_selector/file_selector.dart';
 
 class RecordScreen extends StatefulWidget {
   const RecordScreen({super.key});
@@ -14,6 +18,8 @@ class RecordScreen extends StatefulWidget {
 class _RecordScreenState extends State<RecordScreen> {
   List<GameRecord> _records = [];
   String _scoreMethod = '秒間正解数';
+  bool _isDeleteMode = false;
+  final Set<int> _selectedRecordIndices = {};
 
   @override
   void initState() {
@@ -42,6 +48,258 @@ class _RecordScreenState extends State<RecordScreen> {
         _records.sort((a, b) => b.date.compareTo(a.date));
       });
     }
+  }
+
+  Future<void> _saveRecordsToStorage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = jsonEncode(_records.map((r) => r.toMap()).toList());
+    await prefs.setString('game_records', jsonString);
+  }
+
+  Future<void> _onDeleteButtonPressed() async {
+    if (!_isDeleteMode) {
+      setState(() {
+        _isDeleteMode = true;
+        _selectedRecordIndices.clear();
+      });
+      return;
+    }
+
+    if (_selectedRecordIndices.isEmpty) {
+      setState(() {
+        _isDeleteMode = false;
+      });
+      return;
+    }
+
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("削除しても良いですか？"),
+        content: const Text("選択した記録を削除します。"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text("キャンセル"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text("削除する"),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete != true) {
+      return;
+    }
+
+    setState(() {
+      final remaining = <GameRecord>[];
+      for (int i = 0; i < _records.length; i++) {
+        if (!_selectedRecordIndices.contains(i)) {
+          remaining.add(_records[i]);
+        }
+      }
+      _records = remaining;
+      _selectedRecordIndices.clear();
+      _isDeleteMode = false;
+    });
+
+    await _saveRecordsToStorage();
+    await _loadRecords();
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text("選択した記録を削除しました")));
+  }
+
+  Future<File> _recordsFile() async {
+    final dir = await getApplicationDocumentsDirectory();
+    return File('${dir.path}${Platform.pathSeparator}game_records.json');
+  }
+
+  Future<void> _exportRecords() async {
+    if (_records.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("記録がありません")));
+      return;
+    }
+
+    try {
+      final shouldSave = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("端末に保存しますか？"),
+          content: const Text("保存先フォルダを選択してエクスポートします。"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text("キャンセル"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text("保存する"),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldSave != true) {
+        return;
+      }
+
+      final jsonString = jsonEncode(_records.map((r) => r.toMap()).toList());
+      final folderPath = await getDirectoryPath();
+      if (folderPath == null) {
+        return;
+      }
+
+      final file = File(
+        '$folderPath${Platform.pathSeparator}game_records.json',
+      );
+      await file.writeAsString(jsonString);
+      if (!mounted) return;
+      final shouldShare = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("共有しますか？"),
+          content: const Text("エクスポートした記録を他のアプリで共有できます。"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text("しない"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text("共有する"),
+            ),
+          ],
+        ),
+      );
+
+      if (!mounted) return;
+
+      if (shouldShare == true) {
+        await Share.shareXFiles([
+          XFile(file.path, mimeType: 'application/json'),
+        ]);
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("エクスポートしました")));
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("エクスポートに失敗しました")));
+    }
+  }
+
+  Future<void> _importRecords() async {
+    try {
+      final typeGroup = XTypeGroup(label: 'JSON', extensions: ['json']);
+      final picked = await openFile(acceptedTypeGroups: [typeGroup]);
+      if (picked == null) {
+        return;
+      }
+
+      final shouldImport = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("インポートしますか？"),
+          content: const Text("選択したファイルの記録を追加します。"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text("キャンセル"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text("インポート"),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldImport != true) {
+        return;
+      }
+
+      final content = await picked.readAsString();
+      final decoded = jsonDecode(content);
+      if (decoded is! List) {
+        throw const FormatException("Invalid file format");
+      }
+
+      final importedRecords = decoded
+          .whereType<Map<String, dynamic>>()
+          .map((item) => GameRecord.fromMap(item))
+          .toList();
+
+      final prefs = await SharedPreferences.getInstance();
+      final existingJson = prefs.getString('game_records');
+      final List<dynamic> combined = existingJson == null
+          ? []
+          : jsonDecode(existingJson) as List<dynamic>;
+
+      for (final record in importedRecords) {
+        combined.add(record.toMap());
+      }
+
+      await prefs.setString('game_records', jsonEncode(combined));
+      await _loadRecords();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("インポートしました")));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("インポートに失敗しました")));
+    }
+  }
+
+  Widget _buildExportImportButtons() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton(
+              onPressed: _exportRecords,
+              style: OutlinedButton.styleFrom(
+                backgroundColor: const Color(0xFFF1F1F1),
+                side: const BorderSide(color: Color(0xFF544275), width: 2),
+                foregroundColor: const Color(0xFF544275),
+                textStyle: const TextStyle(fontWeight: FontWeight.w600),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+              ),
+              child: const Text('記録をエクスポート'),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: OutlinedButton(
+              onPressed: _importRecords,
+              style: OutlinedButton.styleFrom(
+                backgroundColor: const Color(0xFFF1F1F1),
+                side: const BorderSide(color: Color(0xFF544275), width: 2),
+                foregroundColor: const Color(0xFF544275),
+                textStyle: const TextStyle(fontWeight: FontWeight.w600),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+              ),
+              child: const Text('記録をインポート'),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // 状態管理用の変数
@@ -344,14 +602,50 @@ class _RecordScreenState extends State<RecordScreen> {
         child: SafeArea(
           child: Column(
             children: [
+              _buildExportImportButtons(),
               Expanded(
                 flex: 6,
                 child: _records.isEmpty
                     ? const Center(child: Text("まだ記録がありません"))
                     : ListView.builder(
-                        itemCount: _records.length,
+                        itemCount: _records.length + 1,
                         itemBuilder: (context, index) {
+                          if (index == _records.length) {
+                            if (_records.isEmpty) {
+                              return const SizedBox.shrink();
+                            }
+                            return Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                              child: OutlinedButton(
+                                onPressed: _onDeleteButtonPressed,
+                                style: OutlinedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFF1F1F1),
+                                  side: const BorderSide(
+                                    color: Color(0xFF544275),
+                                    width: 2,
+                                  ),
+                                  foregroundColor: const Color(0xFF544275),
+                                  textStyle: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
+                                ),
+                                child: Text(
+                                  _isDeleteMode
+                                      ? "削除する(${_selectedRecordIndices.length})"
+                                      : "削除する",
+                                ),
+                              ),
+                            );
+                          }
+
                           final record = _records[index];
+                          final isSelected = _selectedRecordIndices.contains(
+                            index,
+                          );
+
                           return Card(
                             margin: const EdgeInsets.symmetric(
                               horizontal: 16,
@@ -374,15 +668,33 @@ class _RecordScreenState extends State<RecordScreen> {
                                 "${record.mode}\n${record.playerName} (${record.score}/100)",
                               ),
                               subtitle: Text(
-                                "${record.date.year}/${record.date.month}/${record.date.day} ${record.date.hour}:${record.date.minute}",
+                                "${record.date.year}/${record.date.month}/${record.date.day} ${record.date.hour}:${record.date.minute}  ${record.time}",
                               ),
-                              trailing: Text(
-                                record.time,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                              trailing: _isDeleteMode
+                                  ? Icon(
+                                      isSelected
+                                          ? Icons.check_box
+                                          : Icons.check_box_outline_blank,
+                                      color: const Color(0xFF544275),
+                                    )
+                                  : Text(
+                                      record.time,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                              onTap: _isDeleteMode
+                                  ? () {
+                                      setState(() {
+                                        if (isSelected) {
+                                          _selectedRecordIndices.remove(index);
+                                        } else {
+                                          _selectedRecordIndices.add(index);
+                                        }
+                                      });
+                                    }
+                                  : null,
                             ),
                           );
                         },

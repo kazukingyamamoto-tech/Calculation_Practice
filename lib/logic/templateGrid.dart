@@ -1110,6 +1110,7 @@ class _TemplateMultiplicationBrainState
               horizontal: horizontalPadding,
               vertical: buttonVerticalPadding,
             ),
+            backgroundColor: const Color(0xFFEBEBEB),
             side: const BorderSide(color: Color(0xFF544275), width: 2.0),
             foregroundColor: const Color(0xFF544275),
             textStyle: TextStyle(
@@ -1317,11 +1318,7 @@ class _TemplateMultiplicationBrainState
       return Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
-          children: [
-            _buildTimeAndCheckPanel(),
-            const SizedBox(height: 8),
-            _buildNormalModeGrid(),
-          ],
+          children: [_buildTimeAndCheckPanel(), _buildNormalModeGrid()],
         ),
       );
     }
@@ -1359,7 +1356,7 @@ class _TemplateMultiplicationBrainState
           return Column(
             children: [
               SizedBox(key: _timePanelKey, child: _buildTimeAndCheckPanel()),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               if (!_isStarted || _isFinished) ...[
                 _buildNormalModeGrid(
                   bottomWidget: showScore
