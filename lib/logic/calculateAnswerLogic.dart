@@ -23,6 +23,8 @@ String calculateAnswer(AxisItem row, AxisItem col, String mode) {
       return _decimalMultiplicationCalculate(row.number, col.number);
     case "わり算（分数）":
     case "割り算（分数）":
+    case "上級のわり算（分数）":
+    case "上級の割り算（分数）":
       if (col.number != 0) {
         return _divisionCalculate(col.number, row.number);
       } else {

@@ -82,7 +82,7 @@ class _RecordScreenState extends State<RecordScreen> {
     if (totalSec < 1) return 0; // 0除算エラー防止
 
     if (_scoreMethod == '秒間正解数') {
-      return double.parse((r.score / totalSec).toStringAsFixed(1));
+      return double.parse((r.score / totalSec).toStringAsFixed(2));
     }
 
     return r.score.toDouble(); // デフォルト
@@ -208,7 +208,7 @@ class _RecordScreenState extends State<RecordScreen> {
                 return touchedSpots.map((spot) {
                   return LineTooltipItem(
                     _scoreMethod == '秒間正解数'
-                        ? spot.y.toStringAsFixed(1)
+                        ? spot.y.toStringAsFixed(2)
                         : spot.y.toInt().toString(), // 秒間正解数は小数第1位、その他は整数
                     const TextStyle(
                       color: Colors.white,
@@ -227,7 +227,7 @@ class _RecordScreenState extends State<RecordScreen> {
                 getTitlesWidget: (value, meta) {
                   return Text(
                     _scoreMethod == '秒間正解数'
-                        ? value.toStringAsFixed(1)
+                        ? value.toStringAsFixed(2)
                         : value.toInt().toString(), // 秒間正解数は小数第1位、その他は整数
                     style: const TextStyle(fontSize: 10),
                   );

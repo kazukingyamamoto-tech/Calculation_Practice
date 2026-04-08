@@ -175,32 +175,9 @@ class _TemplateMultiplicationBrainState
     List<int> rowRange = [for (int i = rMin; i <= rMax; i++) i];
     List<int> colRange = [for (int i = cMin; i <= cMax; i++) i];
 
-    List<int> selectedRows = [];
-    List<int> selectedCols = [];
-
-    // 2. 横の数字を10個選ぶ
-    if (rowRange.length >= 10) {
-      // 選択肢が10個以上あるなら、シャッフルして被りなしで10個取る
-      rowRange.shuffle();
-      selectedRows = rowRange.take(10).toList();
-    } else {
-      // 選択肢が少ない（1桁など）場合は、重複を許してランダムに10個選ぶ
-      selectedRows = List.generate(
-        10,
-        (_) => rowRange[random.nextInt(rowRange.length)],
-      );
-    }
-
-    // 3. 縦の数字を10個選ぶ
-    if (colRange.length >= 10) {
-      colRange.shuffle();
-      selectedCols = colRange.take(10).toList();
-    } else {
-      selectedCols = List.generate(
-        10,
-        (_) => colRange[random.nextInt(colRange.length)],
-      );
-    }
+    // 2. 横・縦の数字を10個選ぶ（範囲が足りない場合は重複を許す）
+    final selectedRows = _pickTenNumbers(rowRange, random);
+    final selectedCols = _pickTenNumbers(colRange, random);
 
     // 4. AxisItem（専用クラス）に変換する
     rowNumbers = selectedRows.map((n) {
@@ -230,6 +207,23 @@ class _TemplateMultiplicationBrainState
       }
       return AxisItem(number: n, operator: op);
     }).toList();
+  }
+
+  List<int> _pickTenNumbers(List<int> source, Random random) {
+    if (source.isEmpty) {
+      return List.generate(10, (_) => 0);
+    }
+
+    final pool = source.toList()..shuffle();
+    if (pool.length >= 10) {
+      return pool.take(10).toList();
+    }
+
+    final selected = <int>[...pool];
+    while (selected.length < 10) {
+      selected.add(pool[random.nextInt(pool.length)]);
+    }
+    return selected;
   }
 
   int _gradeManualAnswers() {
@@ -593,7 +587,7 @@ class _TemplateMultiplicationBrainState
         mainAxisSize: MainAxisSize.min,
         children: [
           const Text(
-            'セルをタップして入力',
+            'マスをタップして入力',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 3),
@@ -666,17 +660,33 @@ class _TemplateMultiplicationBrainState
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 2.0),
           child: Center(
-            child: Text(
-              _manualInputs[row][col],
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 4,
-                fontWeight: FontWeight.w700,
-                color: Colors.black87,
-              ),
-            ),
+            child: _showAnswers
+                ? Text(
+                    _manualInputs[row][col],
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: _answerFontSize(
+                        _manualInputs[row][col],
+                        base: 8,
+                      ),
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
+                    ),
+                  )
+                : FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      _manualInputs[row][col],
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
           ),
         ),
       );

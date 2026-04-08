@@ -7,6 +7,7 @@ class GameMode {
   final IconData icon;
   final Color color;
   final bool isCustom;
+  final String? imagePath;
   final Widget Function(BuildContext, bool)? onStart;
 
   GameMode({
@@ -15,6 +16,7 @@ class GameMode {
     required this.icon,
     required this.color,
     this.isCustom = false,
+    this.imagePath,
     this.onStart,
   });
 }
@@ -65,20 +67,20 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       case 'わり算（分数）':
         _rowMinCtrl.text = "15";
         _rowMaxCtrl.text = "24";
-        _colMinCtrl.text = "2";
-        _colMaxCtrl.text = "11"; // 1の段は簡単すぎるので2〜9など
+        _colMinCtrl.text = "1";
+        _colMaxCtrl.text = "10"; // 1の段は簡単すぎるので2〜9など
         break;
       case 'かけ算（少数）':
         _rowMinCtrl.text = "11";
         _rowMaxCtrl.text = "99";
-        _colMinCtrl.text = "2";
-        _colMaxCtrl.text = "9";
+        _colMinCtrl.text = "1";
+        _colMaxCtrl.text = "10";
         break;
       case 'わり算（少数）':
         _rowMinCtrl.text = "15";
         _rowMaxCtrl.text = "45";
-        _colMinCtrl.text = "2";
-        _colMaxCtrl.text = "9";
+        _colMinCtrl.text = "1";
+        _colMaxCtrl.text = "10";
         break;
       case '上級のわり算（少数）':
         _rowMinCtrl.text = "30";
@@ -126,6 +128,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       description: "一桁×一桁の基本的な100マス計算！\nまずはスピードと正確さを極めよう。",
       icon: Icons.grid_on,
       color: Colors.redAccent,
+      imagePath: "assets/mode1.png",
       onStart: (context, isManualInputMode) => TemplateMultiplication(
         rowMin: 1,
         rowMax: 10,
@@ -140,6 +143,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       description: "一桁×二桁の100マス計算！\n素早く正確に計算しよう。",
       icon: Icons.calculate,
       color: Colors.orangeAccent,
+      imagePath: "assets/mode2.png",
       onStart: (context, isManualInputMode) => TemplateMultiplication(
         rowMin: 11,
         rowMax: 25,
@@ -154,11 +158,12 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       description: "二桁×三桁の100マス計算！\n限界に挑戦しよう。",
       icon: Icons.bolt,
       color: Colors.deepOrange,
+      imagePath: "assets/mode3.png",
       onStart: (context, isManualInputMode) => TemplateMultiplication(
         rowMin: 101,
         rowMax: 500,
-        colMin: 10,
-        colMax: 1,
+        colMin: 1,
+        colMax: 10,
         mode: "超上級のかけ算",
         manualInputMode: isManualInputMode,
       ),
@@ -168,11 +173,12 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       description: "1.8×4 や 2.3×7 など\n少数第一位までの掛け算を練習！",
       icon: Icons.functions,
       color: Colors.lightBlue,
+      imagePath: "assets/mode4.png",
       onStart: (context, isManualInputMode) => TemplateMultiplication(
         rowMin: 11,
         rowMax: 99,
-        colMin: 2,
-        colMax: 9,
+        colMin: 1,
+        colMax: 10,
         mode: "かけ算（少数）",
         manualInputMode: isManualInputMode,
       ),
@@ -182,12 +188,28 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       description: "二桁÷一桁の計算！\n割り切れない時は分数にしよう。",
       icon: Icons.horizontal_split,
       color: Colors.blueAccent,
+      imagePath: "assets/mode5.png",
       onStart: (context, isManualInputMode) => TemplateMultiplication(
         rowMin: 15,
         rowMax: 24,
         colMin: 2,
-        colMax: 11,
+        colMax: 10,
         mode: "わり算（分数）",
+        manualInputMode: isManualInputMode,
+      ),
+    ),
+    GameMode(
+      title: "上級のわり算（分数）",
+      description: "二桁÷二桁の計算！\n割り切れない時は分数にしよう。",
+      icon: Icons.horizontal_rule,
+      color: Colors.blueGrey,
+      imagePath: "assets/mode6.png",
+      onStart: (context, isManualInputMode) => TemplateMultiplication(
+        rowMin: 11,
+        rowMax: 50,
+        colMin: 11,
+        colMax: 50,
+        mode: "上級のわり算（分数）",
         manualInputMode: isManualInputMode,
       ),
     ),
@@ -196,11 +218,12 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       description: "二桁÷一桁。割り切れない場合は\n四捨五入して小数第1位まで！",
       icon: Icons.looks_one,
       color: Colors.blue,
+      imagePath: "assets/mode7.png",
       onStart: (context, isManualInputMode) => TemplateMultiplication(
         rowMin: 15,
         rowMax: 45,
-        colMin: 2,
-        colMax: 9,
+        colMin: 1,
+        colMax: 10,
         mode: "わり算（少数）",
         manualInputMode: isManualInputMode,
       ),
@@ -210,6 +233,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       description: "二桁÷二桁に挑戦！\n割り切れない場合は小数第1位まで！",
       icon: Icons.looks_two,
       color: Colors.blueGrey,
+      imagePath: "assets/mode8.png",
       onStart: (context, isManualInputMode) => TemplateMultiplication(
         rowMin: 30,
         rowMax: 95,
@@ -224,6 +248,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       description: "掛け算と割り算がランダムに出現！\n瞬時の判断力を鍛えよう。",
       icon: Icons.casino,
       color: Colors.purpleAccent,
+      imagePath: "assets/mode9.png",
       onStart: (context, isManualInputMode) => TemplateMultiplication(
         rowMin: 11,
         rowMax: 25,
@@ -238,6 +263,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       description: "2つの数字の最大公約数を求めよう！\nパズルのように解き明かせ。",
       icon: Icons.hub,
       color: Colors.indigo,
+      imagePath: "assets/mode10.png",
       onStart: (context, isManualInputMode) => TemplateMultiplication(
         rowMin: 20,
         rowMax: 40,
@@ -252,6 +278,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       description: "2つの数字の最小公倍数を求めよう！\n約数と倍数の感覚を鍛えよう。",
       icon: Icons.all_inclusive,
       color: Colors.cyan,
+      imagePath: "assets/mode11.png",
       onStart: (context, isManualInputMode) => TemplateMultiplication(
         rowMin: 4,
         rowMax: 30,
@@ -266,6 +293,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       description: "累乗の法則を見抜いて、\n一の位の数を素早く導き出そう！",
       icon: Icons.sync,
       color: Colors.green,
+      imagePath: "assets/mode12.png",
       onStart: (context, isManualInputMode) => TemplateMultiplication(
         rowMin: 5,
         rowMax: 30,
@@ -289,8 +317,8 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
 
     return _modes.where((mode) {
       if (mode.isCustom) return true; // カスタムは常に最後に追加
-        if (_selectedCategory == 'かけ算' && mode.title.contains('かけ算')) return true;
-        if (_selectedCategory == 'わり算' && mode.title.contains('わり算')) return true;
+      if (_selectedCategory == 'かけ算' && mode.title.contains('かけ算')) return true;
+      if (_selectedCategory == 'わり算' && mode.title.contains('わり算')) return true;
       if (_selectedCategory == 'その他' &&
           !mode.title.contains('かけ算') &&
           !mode.title.contains('わり算'))
@@ -308,6 +336,14 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
 
     if (rMax != null && rMin != null && cMax != null && cMin != null) {
       if (rMax >= rMin && cMax >= cMin) {
+        final rowCount = (rMax - rMin + 1).abs();
+        final colCount = (cMax - cMin + 1).abs();
+        if (rowCount < 10 || colCount < 10) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text("行・列ともに10以上の範囲が必要です")));
+          return;
+        }
         // カスタムモードは Prepare を飛ばして直接スタート！
         Navigator.push(
           context,
@@ -532,7 +568,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 16,
               height: 1.4,
               color: Colors.white,
             ),
@@ -546,25 +582,22 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: Colors.white70, width: 1.2),
               ),
-              child: const Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.image_outlined, color: Colors.white, size: 28),
-                    SizedBox(height: 6),
-                    Text(
-                      "写真スペース",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: Image.asset(
+                  mode.imagePath ?? "",
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Center(
+                      child: Text(
+                        "画像が見つかりません",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      "ここに説明画像を配置できます",
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
-                    ),
-                  ],
+                    );
+                  },
                 ),
               ),
             ),
