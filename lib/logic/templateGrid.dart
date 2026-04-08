@@ -9,6 +9,7 @@ import 'grid_pdf_logic.dart';
 class TemplateMultiplication extends StatelessWidget {
   final int rowMin, rowMax, colMin, colMax;
   final String mode;
+  final String? recordMode;
   final bool manualInputMode;
 
   const TemplateMultiplication({
@@ -18,6 +19,7 @@ class TemplateMultiplication extends StatelessWidget {
     required this.colMin,
     required this.colMax,
     required this.mode,
+    this.recordMode,
     this.manualInputMode = false,
   });
 
@@ -29,6 +31,7 @@ class TemplateMultiplication extends StatelessWidget {
       colMin: colMin,
       colMax: colMax,
       mode: mode,
+      recordMode: recordMode ?? mode,
       manualInputMode: manualInputMode,
       calculateAnswer: calculateAnswer,
     );
@@ -38,6 +41,7 @@ class TemplateMultiplication extends StatelessWidget {
 class TemplateMultiplicationBrain extends StatefulWidget {
   final int rowMin, rowMax, colMin, colMax;
   final String mode;
+  final String recordMode;
   final bool manualInputMode;
   // ★ 修正：int ではなく AxisItem を受け取る関数にする
   final String Function(AxisItem, AxisItem, String) calculateAnswer;
@@ -49,6 +53,7 @@ class TemplateMultiplicationBrain extends StatefulWidget {
     required this.colMin,
     required this.colMax,
     required this.mode,
+    required this.recordMode,
     required this.manualInputMode,
     required this.calculateAnswer,
   });
@@ -128,6 +133,7 @@ class _TemplateMultiplicationBrainState
         builder: (context) => ResultScreen(
           mode: widget.mode,
           fixedScore: widget.manualInputMode ? _score : null,
+          recordMode: widget.recordMode,
           timeTaken: Duration(
             seconds:
                 int.parse(resTime.split(':')[0]) * 60 +
@@ -203,7 +209,7 @@ class _TemplateMultiplicationBrainState
         op = "^"; // 累乗のマーク
       }
 
-      if (widget.mode == "少数の掛け算") {
+      if (widget.mode == "少数の掛け算" || widget.mode == "かけ算（少数）") {
         return AxisItem(
           number: n,
           operator: op,
@@ -216,7 +222,7 @@ class _TemplateMultiplicationBrainState
 
     colNumbers = selectedCols.map((n) {
       String op = "";
-      if (widget.mode.contains("割り算")) {
+      if (widget.mode.contains("割り算") || widget.mode.contains("わり算")) {
         op = "÷"; // 割り算のマーク
       }
       if (widget.mode.contains("ミックス")) {
@@ -519,7 +525,12 @@ class _TemplateMultiplicationBrainState
 
   Widget _buildManualKeypad() {
     final extraInputKey =
-        (widget.mode == "少数の掛け算" || widget.mode.contains("割り算の少数")) ? '.' : '/';
+      (widget.mode == "少数の掛け算" ||
+          widget.mode == "かけ算（少数）" ||
+          widget.mode.contains("割り算の少数") ||
+          widget.mode.contains("わり算（少数）"))
+        ? '.'
+        : '/';
 
     // _isPhoneKeypad の設定に応じてキーパットの行を切り替える
     final List<Widget> keypadTopRow = _isPhoneKeypad
@@ -1045,7 +1056,6 @@ class _TemplateMultiplicationBrainState
 
         final horizontalPadding = isTiny ? 10.0 : 14.0;
         final verticalPadding = isTiny ? 8.0 : 10.0;
-        final timerFontSize = isTiny ? 18.0 : (useCompactLayout ? 20.0 : 22.0);
         final buttonFontSize = isTiny ? 13.0 : 14.0;
         final buttonVerticalPadding = isTiny ? 8.0 : 10.0;
         final printButtonHorizontalPadding = isTiny
@@ -1171,38 +1181,45 @@ class _TemplateMultiplicationBrainState
             vertical: verticalPadding,
           ),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade300),
+            color: Colors.transparent,
           ),
-          child: useCompactLayout
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      "タイム: $_timeDisplay",
+                      'タイム',
                       style: TextStyle(
-                        fontSize: timerFontSize,
-                        fontWeight: FontWeight.bold,
+                        fontSize: isTiny ? 16.0 : 18.0,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.6,
+                        color: const Color(0xFF544275),
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Align(alignment: Alignment.centerRight, child: buttonGroup),
-                  ],
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
+                    const SizedBox(height: 4),
                     Text(
-                      "タイム: $_timeDisplay",
+                      _timeDisplay,
                       style: TextStyle(
-                        fontSize: timerFontSize,
-                        fontWeight: FontWeight.bold,
+                        fontSize: isTiny
+                            ? 34.0
+                            : (useCompactLayout ? 40.0 : 48.0),
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.0,
+                        height: 1.0,
+                        color: const Color(0xFF544275),
                       ),
                     ),
-                    buttonGroup,
                   ],
                 ),
+              ),
+              const SizedBox(height: 10),
+              Align(alignment: Alignment.center, child: buttonGroup),
+            ],
+          ),
         );
       },
     );

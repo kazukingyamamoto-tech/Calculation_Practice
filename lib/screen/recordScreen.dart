@@ -371,7 +371,7 @@ class _RecordScreenState extends State<RecordScreen> {
                                 color: Colors.orange,
                               ),
                               title: Text(
-                                "${record.mode} (${record.score}/100) - ${record.playerName}",
+                                "${record.mode}\n${record.playerName} (${record.score}/100)",
                               ),
                               subtitle: Text(
                                 "${record.date.year}/${record.date.month}/${record.date.day} ${record.date.hour}:${record.date.minute}",

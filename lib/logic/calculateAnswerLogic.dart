@@ -11,19 +11,26 @@ class AxisItem {
 
 String calculateAnswer(AxisItem row, AxisItem col, String mode) {
   switch (mode) {
+    case "普通のかけ算":
     case "普通の掛け算":
+    case "上級のかけ算":
     case "上級の掛け算":
+    case "超上級のかけ算":
     case "超上級の掛け算":
       return (row.number * col.number).toString();
+    case "かけ算（少数）":
     case "少数の掛け算":
       return _decimalMultiplicationCalculate(row.number, col.number);
+    case "わり算（分数）":
     case "割り算（分数）":
       if (col.number != 0) {
         return _divisionCalculate(col.number, row.number);
       } else {
         return "Error"; // ゼロ除算のエラー
       }
+    case "わり算（少数）":
     case "割り算（少数）":
+    case "上級のわり算（少数）":
     case "上級の割り算（少数）":
       if (col.number != 0) {
         return _divisionDecimalCalculate(col.number, row.number);
@@ -45,6 +52,7 @@ String calculateAnswer(AxisItem row, AxisItem col, String mode) {
     case "最小公倍数":
       return _lcm(row.number, col.number).toString();
     case "循環":
+    case "循環する一の位":
       return _cycle(row.number, col.number).toString();
     default:
       return "";

@@ -34,10 +34,10 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
 
   // --- 絞り込み用の状態管理 ---
   String _selectedCategory = 'すべて';
-  final List<String> _categories = ['すべて', '掛け算', '割り算', 'その他'];
+  final List<String> _categories = ['すべて', 'かけ算', 'わり算', 'その他'];
 
   // --- カスタムモード用の状態管理 ---
-  String _selectedCustomLogic = "普通の掛け算";
+  String _selectedCustomLogic = "普通のかけ算";
   final _rowMinCtrl = TextEditingController(text: "1");
   final _rowMaxCtrl = TextEditingController(text: "10");
   final _colMinCtrl = TextEditingController(text: "1");
@@ -56,31 +56,31 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
   // --- ★追加：選んだモードに合わせてデフォルト値を入力欄にセットする関数 ---
   void _updateCustomDefaults(String modeName) {
     switch (modeName) {
-      case '普通の掛け算':
+      case '普通のかけ算':
         _rowMinCtrl.text = "1";
         _rowMaxCtrl.text = "10";
         _colMinCtrl.text = "1";
         _colMaxCtrl.text = "10";
         break;
-      case '割り算':
+      case 'わり算（分数）':
         _rowMinCtrl.text = "15";
         _rowMaxCtrl.text = "24";
         _colMinCtrl.text = "2";
         _colMaxCtrl.text = "11"; // 1の段は簡単すぎるので2〜9など
         break;
-      case '少数の掛け算':
+      case 'かけ算（少数）':
         _rowMinCtrl.text = "11";
         _rowMaxCtrl.text = "99";
         _colMinCtrl.text = "2";
         _colMaxCtrl.text = "9";
         break;
-      case '割り算の少数でこたえを出す':
+      case 'わり算（少数）':
         _rowMinCtrl.text = "15";
         _rowMaxCtrl.text = "45";
         _colMinCtrl.text = "2";
         _colMaxCtrl.text = "9";
         break;
-      case '割り算の少数でこたえを出すレベル２':
+      case '上級のわり算（少数）':
         _rowMinCtrl.text = "30";
         _rowMaxCtrl.text = "95";
         _colMinCtrl.text = "11";
@@ -104,7 +104,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         _colMinCtrl.text = "4";
         _colMaxCtrl.text = "30";
         break;
-      case '循環':
+      case '循環する一の位':
         _rowMinCtrl.text = "5";
         _rowMaxCtrl.text = "30";
         _colMinCtrl.text = "11";
@@ -122,7 +122,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
   // モードのリスト定義
   late final List<GameMode> _modes = [
     GameMode(
-      title: "普通の掛け算",
+      title: "普通のかけ算",
       description: "一桁×一桁の基本的な100マス計算！\nまずはスピードと正確さを極めよう。",
       icon: Icons.grid_on,
       color: Colors.redAccent,
@@ -131,12 +131,12 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         rowMax: 10,
         colMin: 1,
         colMax: 10,
-        mode: "普通の掛け算",
+        mode: "普通のかけ算",
         manualInputMode: isManualInputMode,
       ),
     ),
     GameMode(
-      title: "上級の掛け算",
+      title: "上級のかけ算",
       description: "一桁×二桁の100マス計算！\n素早く正確に計算しよう。",
       icon: Icons.calculate,
       color: Colors.orangeAccent,
@@ -145,12 +145,12 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         rowMax: 25,
         colMin: 1,
         colMax: 10,
-        mode: "上級の掛け算",
+        mode: "上級のかけ算",
         manualInputMode: isManualInputMode,
       ),
     ),
     GameMode(
-      title: "超上級の掛け算",
+      title: "超上級のかけ算",
       description: "二桁×三桁の100マス計算！\n限界に挑戦しよう。",
       icon: Icons.bolt,
       color: Colors.deepOrange,
@@ -159,12 +159,12 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         rowMax: 500,
         colMin: 10,
         colMax: 1,
-        mode: "超上級の掛け算",
+        mode: "超上級のかけ算",
         manualInputMode: isManualInputMode,
       ),
     ),
     GameMode(
-      title: "少数の掛け算",
+      title: "かけ算（少数）",
       description: "1.8×4 や 2.3×7 など\n少数第一位までの掛け算を練習！",
       icon: Icons.functions,
       color: Colors.lightBlue,
@@ -173,12 +173,12 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         rowMax: 99,
         colMin: 2,
         colMax: 9,
-        mode: "少数の掛け算",
+        mode: "かけ算（少数）",
         manualInputMode: isManualInputMode,
       ),
     ),
     GameMode(
-      title: "割り算（分数）",
+      title: "わり算（分数）",
       description: "二桁÷一桁の計算！\n割り切れない時は分数にしよう。",
       icon: Icons.horizontal_split,
       color: Colors.blueAccent,
@@ -187,12 +187,12 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         rowMax: 24,
         colMin: 2,
         colMax: 11,
-        mode: "割り算（分数）",
+        mode: "わり算（分数）",
         manualInputMode: isManualInputMode,
       ),
     ),
     GameMode(
-      title: "割り算（少数）",
+      title: "わり算（少数）",
       description: "二桁÷一桁。割り切れない場合は\n四捨五入して小数第1位まで！",
       icon: Icons.looks_one,
       color: Colors.blue,
@@ -201,12 +201,12 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         rowMax: 45,
         colMin: 2,
         colMax: 9,
-        mode: "割り算（少数）",
+        mode: "わり算（少数）",
         manualInputMode: isManualInputMode,
       ),
     ),
     GameMode(
-      title: "上級の割り算（少数）",
+      title: "上級のわり算（少数）",
       description: "二桁÷二桁に挑戦！\n割り切れない場合は小数第1位まで！",
       icon: Icons.looks_two,
       color: Colors.blueGrey,
@@ -215,7 +215,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         rowMax: 95,
         colMin: 11,
         colMax: 25,
-        mode: "上級の割り算（少数）",
+        mode: "上級のわり算（少数）",
         manualInputMode: isManualInputMode,
       ),
     ),
@@ -234,7 +234,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       ),
     ),
     GameMode(
-      title: "最大公約数の計算",
+      title: "最大公約数",
       description: "2つの数字の最大公約数を求めよう！\nパズルのように解き明かせ。",
       icon: Icons.hub,
       color: Colors.indigo,
@@ -248,7 +248,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       ),
     ),
     GameMode(
-      title: "最小公倍数の計算",
+      title: "最小公倍数",
       description: "2つの数字の最小公倍数を求めよう！\n約数と倍数の感覚を鍛えよう。",
       icon: Icons.all_inclusive,
       color: Colors.cyan,
@@ -271,7 +271,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         rowMax: 30,
         colMin: 11,
         colMax: 50,
-        mode: "循環",
+        mode: "循環する一の位",
         manualInputMode: isManualInputMode,
       ),
     ),
@@ -289,11 +289,11 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
 
     return _modes.where((mode) {
       if (mode.isCustom) return true; // カスタムは常に最後に追加
-      if (_selectedCategory == '掛け算' && mode.title.contains('掛け算')) return true;
-      if (_selectedCategory == '割り算' && mode.title.contains('割り算')) return true;
+        if (_selectedCategory == 'かけ算' && mode.title.contains('かけ算')) return true;
+        if (_selectedCategory == 'わり算' && mode.title.contains('わり算')) return true;
       if (_selectedCategory == 'その他' &&
-          !mode.title.contains('掛け算') &&
-          !mode.title.contains('割り算'))
+          !mode.title.contains('かけ算') &&
+          !mode.title.contains('わり算'))
         return true;
       return false;
     }).toList();
@@ -318,6 +318,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
               colMin: cMin,
               colMax: cMax,
               mode: _selectedCustomLogic,
+              recordMode: 'カスタム',
               manualInputMode: _isManualInputMode,
             ),
           ),
@@ -609,14 +610,14 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
               ),
               items:
                   [
-                        '普通の掛け算',
-                        '割り算（分数）',
-                        '割り算（少数）',
-                        '上級の割り算（少数）',
+                        '普通のかけ算',
+                        'わり算（分数）',
+                        'わり算（少数）',
+                        '上級のわり算（少数）',
                         'ミックス計算',
                         '最大公約数',
                         '最小公倍数',
-                        '循環',
+                        '循環する一の位',
                       ]
                       .map(
                         (val) => DropdownMenuItem(value: val, child: Text(val)),
@@ -765,7 +766,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
                 shape: BoxShape.circle,
                 color: _currentIndex == index
                     ? _filteredModes[_currentIndex].color
-                    : Colors.grey.shade300,
+                    : Colors.white,
               ),
             ),
           ),

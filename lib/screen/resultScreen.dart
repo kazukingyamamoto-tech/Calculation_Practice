@@ -6,12 +6,14 @@ import '../logic/GameRecord.dart';
 class ResultScreen extends StatefulWidget {
   final Duration timeTaken;
   final String mode;
+  final String recordMode;
   final int? fixedScore;
 
   const ResultScreen({
     super.key,
     required this.timeTaken,
     required this.mode,
+    this.recordMode = '',
     this.fixedScore,
   });
 
@@ -271,7 +273,9 @@ class _ResultScreenState extends State<ResultScreen> {
                             date: DateTime.now(),
                             time:
                                 "${widget.timeTaken.inMinutes.toString().padLeft(2, "0")}:${(widget.timeTaken.inSeconds % 60).toString().padLeft(2, "0")}",
-                            mode: widget.mode,
+                            mode: widget.recordMode.isNotEmpty
+                                ? widget.recordMode
+                                : widget.mode,
                             score: score,
                           ),
                         );
