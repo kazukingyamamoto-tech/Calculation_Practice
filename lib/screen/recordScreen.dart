@@ -115,11 +115,6 @@ class _RecordScreenState extends State<RecordScreen> {
     ).showSnackBar(const SnackBar(content: Text("選択した記録を削除しました")));
   }
 
-  Future<File> _recordsFile() async {
-    final dir = await getApplicationDocumentsDirectory();
-    return File('${dir.path}${Platform.pathSeparator}game_records.json');
-  }
-
   Future<void> _exportRecords() async {
     if (_records.isEmpty) {
       ScaffoldMessenger.of(
