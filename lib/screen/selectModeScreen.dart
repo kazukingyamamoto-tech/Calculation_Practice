@@ -33,6 +33,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
   static const double _minLandscapeSafeHeight = 550;
   int _currentIndex = 0;
   bool _isManualInputMode = false;
+  final Map<String, TextEditingController> _modeNoteControllers = {};
 
   // --- 絞り込み用の状態管理 ---
   String _selectedCategory = 'すべて';
@@ -47,12 +48,25 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
 
   @override // ★ disposeには @override が必要です
   void dispose() {
+    for (final controller in _modeNoteControllers.values) {
+      controller.dispose();
+    }
     _colMaxCtrl.dispose();
     _colMinCtrl.dispose();
     _rowMaxCtrl.dispose();
     _rowMinCtrl.dispose();
     _pageController.dispose(); // これも忘れずに破棄
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    for (final mode in _modes) {
+      if (!mode.isCustom) {
+        _modeNoteControllers[mode.title] = TextEditingController();
+      }
+    }
   }
 
   // --- ★追加：選んだモードに合わせてデフォルト値を入力欄にセットする関数 ---
@@ -550,6 +564,11 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
 
   // --- カード中身（通常） ---
   Widget _buildNormalCard(GameMode mode) {
+    final noteController = _modeNoteControllers.putIfAbsent(
+      mode.title,
+      TextEditingController.new,
+    );
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
       child: Column(
@@ -590,25 +609,60 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(14),
-                child: Image.asset(
-                  mode.imagePath ?? "",
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Center(
-                      child: Text(
-                        "画像が見つかりません",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.asset(
+                      mode.imagePath ?? "",
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Center(
+                          child: Text(
+                            "画像が見つかりません",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 12, right: 16),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 160),
+                          child: _buildImageNoteField(noteController),
                         ),
                       ),
-                    );
-                  },
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildImageNoteField(TextEditingController controller) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 247, 238, 238),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.black, width: 1.2),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: TextField(
+        controller: controller,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        decoration: const InputDecoration(
+          hintText: "メモ",
+          border: InputBorder.none,
+        ),
       ),
     );
   }

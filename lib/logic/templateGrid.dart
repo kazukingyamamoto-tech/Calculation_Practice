@@ -1110,7 +1110,7 @@ class _TemplateMultiplicationBrainState
               horizontal: horizontalPadding,
               vertical: buttonVerticalPadding,
             ),
-            backgroundColor: const Color(0xFFEBEBEB),
+            backgroundColor: const Color(0xFFE3E3E3),
             side: const BorderSide(color: Color(0xFF544275), width: 2.0),
             foregroundColor: const Color(0xFF544275),
             textStyle: TextStyle(
