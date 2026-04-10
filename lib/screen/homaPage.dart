@@ -345,7 +345,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               ),
                               const SizedBox(width: 8),
                               const Text(
-                                '100マス基礎練習',
+                                '100Math基礎練習',
                                 style: TextStyle(
                                   fontSize: 28,
                                   fontWeight: FontWeight.w900,
