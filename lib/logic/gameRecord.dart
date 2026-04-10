@@ -32,14 +32,14 @@ class GameRecord {
         return '上級のかけ算';
       case '超上級の掛け算':
         return '超上級のかけ算';
-      case '少数の掛け算':
-        return 'かけ算（少数）';
+      case '小数の掛け算':
+        return 'かけ算（小数）';
       case '割り算（分数）':
         return 'わり算（分数）';
-      case '割り算（少数）':
-        return 'わり算（少数）';
-      case '上級の割り算（少数）':
-        return '上級のわり算（少数）';
+      case '割り算（小数）':
+        return 'わり算（小数）';
+      case '上級の割り算（小数）':
+        return '上級のわり算（小数）';
       case '最大公約数の計算':
         return '最大公約数';
       case '最小公倍数の計算':

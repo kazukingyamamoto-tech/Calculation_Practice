@@ -18,8 +18,8 @@ String calculateAnswer(AxisItem row, AxisItem col, String mode) {
     case "超上級のかけ算":
     case "超上級の掛け算":
       return (row.number * col.number).toString();
-    case "かけ算（少数）":
-    case "少数の掛け算":
+    case "かけ算（小数）":
+    case "小数の掛け算":
       return _decimalMultiplicationCalculate(row.number, col.number);
     case "わり算（分数）":
     case "割り算（分数）":
@@ -30,10 +30,10 @@ String calculateAnswer(AxisItem row, AxisItem col, String mode) {
       } else {
         return "Error"; // ゼロ除算のエラー
       }
-    case "わり算（少数）":
-    case "割り算（少数）":
-    case "上級のわり算（少数）":
-    case "上級の割り算（少数）":
+    case "わり算（小数）":
+    case "割り算（小数）":
+    case "上級のわり算（小数）":
+    case "上級の割り算（小数）":
       if (col.number != 0) {
         return _divisionDecimalCalculate(col.number, row.number);
       } else {

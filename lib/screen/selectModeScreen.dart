@@ -33,20 +33,6 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
   static const double _minLandscapeSafeHeight = 550;
   int _currentIndex = 0;
   bool _isManualInputMode = false;
-  final Map<String, String> _modeNoteSamples = {
-    '普通のかけ算': '縦の数字と横の数字をかけ算した数を答えよう',
-    '上級のかけ算': '縦の数字と横の数字をかけ算した数を答えよう',
-    '超上級のかけ算': '縦の数字と横の数字をかけ算した数を答えよう',
-    'かけ算（少数）': '縦の数字と横の数字をかけ算した数を答えよう\n小数点の位置に注意！',
-    'わり算（分数）': '縦の数字を横の数字でわり算した数を答えよう！\nわり切れないときは分数で答えよう！',
-    '上級のわり算（分数）': '縦の数字を横の数字でわり算した数を答えよう！\nわり切れないときは分数で答えよう！',
-    'わり算（少数）': '縦の数字を横の数字でわり算した数を答えよう！\nわり切れないときは四捨五入して小数第1位まで！',
-    '上級のわり算（少数）': '縦の数字を横の数字でわり算した数を答えよう！\nわり切れないときは四捨五入して小数第1位まで！',
-    'ミックス計算': 'かけ算とわり算がランダムに出現！わりきれないときは分数で答えよう！',
-    '最大公約数': '縦の数字と横の数字の最大公約数を求めよう！',
-    '最小公倍数': '縦の数字と横の数字の最小公倍数を求めよう！',
-    '循環する一の位': '横の数字を縦の数字回かけたときの一の位を答えよう！',
-  };
 
   // --- 絞り込み用の状態管理 ---
   String _selectedCategory = 'すべて';
@@ -90,19 +76,19 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         _colMinCtrl.text = "24";
         _colMaxCtrl.text = "40"; // 1の段は簡単すぎるので2〜9など
         break;
-      case 'かけ算（少数）':
+      case 'かけ算（小数）':
         _rowMinCtrl.text = "11";
         _rowMaxCtrl.text = "99";
         _colMinCtrl.text = "1";
         _colMaxCtrl.text = "10";
         break;
-      case 'わり算（少数）':
+      case 'わり算（小数）':
         _rowMinCtrl.text = "15";
         _rowMaxCtrl.text = "45";
         _colMinCtrl.text = "1";
         _colMaxCtrl.text = "10";
         break;
-      case '上級のわり算（少数）':
+      case '上級のわり算（小数）':
         _rowMinCtrl.text = "30";
         _rowMaxCtrl.text = "95";
         _colMinCtrl.text = "11";
@@ -145,7 +131,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
   late final List<GameMode> _modes = [
     GameMode(
       title: "普通のかけ算",
-      description: "一桁×一桁の基本的な100マス計算！\nまずはスピードと正確さを極めよう。",
+      description: "一桁×一桁の基本的な100マス計算。\nまずはスピードと正確さを極めよう！",
       icon: Icons.grid_on,
       color: Colors.redAccent,
       imagePath: "assets/mode_1.png",
@@ -160,7 +146,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
     ),
     GameMode(
       title: "上級のかけ算",
-      description: "一桁×二桁の100マス計算！\n素早く正確に計算しよう。",
+      description: "一桁×二桁の100マス計算。\n素早く正確に計算しよう！",
       icon: Icons.calculate,
       color: Colors.orangeAccent,
       imagePath: "assets/mode_2.png",
@@ -175,7 +161,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
     ),
     GameMode(
       title: "超上級のかけ算",
-      description: "二桁×三桁の100マス計算！\n限界に挑戦しよう。",
+      description: "二桁×三桁の100マス計算。\n限界に挑戦しよう！",
       icon: Icons.bolt,
       color: Colors.deepOrange,
       imagePath: "assets/mode_3.png",
@@ -189,8 +175,8 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       ),
     ),
     GameMode(
-      title: "かけ算（少数）",
-      description: "1.8×4 や 2.3×7 など\n少数第一位までの掛け算を練習！小数点の位置に注意して答えよう！",
+      title: "かけ算（小数）",
+      description: "小数第一位までの数と\n一桁の数のかけ算を練習しよう。\n小数点の位置に注意して答えよう！",
       icon: Icons.functions,
       color: Colors.lightBlue,
       imagePath: "assets/mode_4.png",
@@ -199,14 +185,14 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         rowMax: 99,
         colMin: 1,
         colMax: 10,
-        mode: "かけ算（少数）",
+        mode: "かけ算（小数）",
         manualInputMode: isManualInputMode,
       ),
     ),
     GameMode(
       title: "わり算（分数）",
       description:
-          "二桁÷一桁の計算！\n割り切れない時は分数にしよう。約分に注意して答えよう！（手入力モードの場合は、分子/分母の順で答えよう）",
+          "二桁÷一桁の計算。\n割り切れない時は分数にして、\n約分にも注意して答えよう！\n（手入力モードでは、\n分子/分母の順で答えよう）",
       icon: Icons.horizontal_split,
       color: Colors.blueAccent,
       imagePath: "assets/mode_5.png",
@@ -222,7 +208,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
     GameMode(
       title: "上級のわり算（分数）",
       description:
-          "二桁÷二桁の計算！\n割り切れない時は分数にしよう。約分に注意して答えよう！（手入力モードの場合は、分子/分母の順で答えよう）",
+          "二桁÷二桁の計算。\nわり切れない時は分数にして、\n約分にも注意して答えよう！\n（手入力モードの場合は、\n分子/分母の順で答えよう）",
       icon: Icons.horizontal_rule,
       color: Colors.blueGrey,
       imagePath: "assets/mode_6.png",
@@ -236,8 +222,8 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       ),
     ),
     GameMode(
-      title: "わり算（少数）",
-      description: "二桁÷一桁の計算！\n割り切れない場合は四捨五入して小数第1位までで答えよう！",
+      title: "わり算（小数）",
+      description: "二桁÷一桁の計算。\nわり切れない場合は四捨五入して、\n小数点第1位までで答えよう！",
       icon: Icons.looks_one,
       color: Colors.blue,
       imagePath: "assets/mode_7.png",
@@ -246,13 +232,13 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         rowMax: 45,
         colMin: 1,
         colMax: 10,
-        mode: "わり算（少数）",
+        mode: "わり算（小数）",
         manualInputMode: isManualInputMode,
       ),
     ),
     GameMode(
-      title: "上級のわり算（少数）",
-      description: "二桁÷二桁に挑戦！\n割り切れない場合は四捨五入して少数第1位までで答えよう！",
+      title: "上級のわり算（小数）",
+      description: "二桁÷二桁に挑戦！\nわり切れない場合は四捨五入して、\n小数点第1位までで答えよう！",
       icon: Icons.looks_two,
       color: Colors.blueGrey,
       imagePath: "assets/mode_8.png",
@@ -261,13 +247,13 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         rowMax: 95,
         colMin: 11,
         colMax: 25,
-        mode: "上級のわり算（少数）",
+        mode: "上級のわり算（小数）",
         manualInputMode: isManualInputMode,
       ),
     ),
     GameMode(
       title: "ミックス計算",
-      description: "掛け算と割り算がランダムに出現！\n瞬時の判断力を鍛えよう。割り切れないときは分数で答えよう",
+      description: "かけ算とわり算がランダムに出現！\n瞬時の判断力を鍛えよう。\n割り切れないときは分数で答えよう。",
       icon: Icons.casino,
       color: Colors.purpleAccent,
       imagePath: "assets/mode_9.png",
@@ -282,7 +268,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
     ),
     GameMode(
       title: "最大公約数",
-      description: "2つの数字の最大公約数を求めよう！素早く正確に答えて感覚を鍛えよう！",
+      description: "2つの数字の最大公約数を求めよう。\n素早く正確に答えて感覚を鍛えよう！",
       icon: Icons.hub,
       color: Colors.indigo,
       imagePath: "assets/mode_10.png",
@@ -297,7 +283,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
     ),
     GameMode(
       title: "最小公倍数",
-      description: "2つの数字の最小公倍数を求めよう！\n約数と倍数の感覚を鍛えよう。",
+      description: "2つの数字の最小公倍数を求めよう。\n約数と倍数の感覚を鍛えよう！",
       icon: Icons.all_inclusive,
       color: Colors.cyan,
       imagePath: "assets/mode_11.png",
@@ -312,7 +298,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
     ),
     GameMode(
       title: "循環する一の位",
-      description: "横の数字を縦の数字の回数分かけたときの一の位を答えよう！累乗の法則に従って、パターンを見抜こう！",
+      description: "横の数字を縦の数字の数分\nかけ合わせた数の一の位を答えよう！\n累乗の法則からパターンを見抜こう！",
       icon: Icons.sync,
       color: Colors.green,
       imagePath: "assets/mode_12.png",
@@ -518,21 +504,24 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
                           tween: Tween<double>(begin: scale, end: scale),
                           curve: Curves.easeOut,
                           builder: (context, double value, child) {
-                            return Transform.scale(
-                              scale: value,
-                              child: Card(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(24),
-                                  side: const BorderSide(
-                                    color: Colors.white,
-                                    width: 2.0,
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 24),
+                              child: Transform.scale(
+                                scale: value,
+                                child: Card(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(24),
+                                    side: const BorderSide(
+                                      color: Colors.white,
+                                      width: 2.0,
+                                    ),
                                   ),
+                                  elevation: isSelected ? 8 : 2,
+                                  color: mode.color,
+                                  child: mode.isCustom
+                                      ? _buildCustomCard()
+                                      : _buildNormalCard(mode),
                                 ),
-                                elevation: isSelected ? 8 : 2,
-                                color: mode.color,
-                                child: mode.isCustom
-                                    ? _buildCustomCard()
-                                    : _buildNormalCard(mode),
                               ),
                             );
                           },
@@ -541,7 +530,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 10),
 
                   // --- 下半分：スタートボタン ---
                   Expanded(
@@ -566,8 +555,6 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
 
   // --- カード中身（通常） ---
   Widget _buildNormalCard(GameMode mode) {
-    final noteText = _modeNoteSamples[mode.title] ?? '';
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
       child: Column(
@@ -585,50 +572,59 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 10),
-          Text(
-            mode.description,
-            textAlign: TextAlign.center,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 16,
-              height: 1.4,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Flexible(
-            fit: FlexFit.loose,
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.white70, width: 1.2),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
-                  child: Image.asset(
-                    mode.imagePath ?? "",
-                    width: double.infinity,
-                    fit: BoxFit.fitWidth,
-                    alignment: Alignment.center,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Center(
-                        child: Text(
-                          "画像が見つかりません",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      );
-                    },
+          // 1. 上のテキスト部分: Flexible を Expanded に変更！
+          Expanded(
+            child: Container(
+              width: double.infinity, // 横幅いっぱいまで広げたい場合に追加
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Center(
+                  child: Text(
+                    mode.description,
+                    textAlign: TextAlign.center,
+                    maxLines: 5,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      height: 1.5,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          // 2. 下の画像スペース: Expanded と Align を外す！
+          Container(
+            width: double.infinity,
+            // 💡 もし画像の高さが大きすぎてはみ出る場合は、ここに height: 200 などを指定するか、
+            // Container の代わりに AspectRatio(aspectRatio: 1.0, ...) で囲むと綺麗な形を保てます。
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.white70, width: 1.2),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: Image.asset(
+                mode.imagePath ?? "",
+                width: double.infinity,
+                fit: BoxFit.cover,
+                alignment: Alignment.center,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Center(
+                    child: Text(
+                      "画像が見つかりません",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
@@ -675,8 +671,8 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
                   [
                         '普通のかけ算',
                         'わり算（分数）',
-                        'わり算（少数）',
-                        '上級のわり算（少数）',
+                        'わり算（小数）',
+                        '上級のわり算（小数）',
                         'ミックス計算',
                         '最大公約数',
                         '最小公倍数',
@@ -775,12 +771,12 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 27),
         _buildInputModeSwitch(),
-        const SizedBox(height: 12),
+        const Spacer(),
         SizedBox(
           width: double.infinity,
-          height: 52,
+          height: 60,
           child: ElevatedButton(
             onPressed: () {
               Navigator.push(
@@ -801,14 +797,14 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
             child: const Text(
               'このモードでスタート！',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 21,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
             ),
           ),
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: 50),
       ],
     );
   }
@@ -834,9 +830,9 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 10),
         _buildInputModeSwitch(),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         SizedBox(
           width: double.infinity,
           height: 52,

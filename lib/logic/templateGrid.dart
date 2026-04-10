@@ -186,7 +186,7 @@ class _TemplateMultiplicationBrainState
         op = "^"; // 累乗のマーク
       }
 
-      if (widget.mode == "少数の掛け算" || widget.mode == "かけ算（少数）") {
+      if (widget.mode == "小数の掛け算" || widget.mode == "かけ算（小数）") {
         return AxisItem(
           number: n,
           operator: op,
@@ -519,10 +519,10 @@ class _TemplateMultiplicationBrainState
 
   Widget _buildManualKeypad() {
     final extraInputKey =
-        (widget.mode == "少数の掛け算" ||
-            widget.mode == "かけ算（少数）" ||
-            widget.mode.contains("割り算の少数") ||
-            widget.mode.contains("わり算（少数）"))
+        (widget.mode == "小数の掛け算" ||
+            widget.mode == "かけ算（小数）" ||
+            widget.mode.contains("割り算の小数") ||
+            widget.mode.contains("わり算（小数）"))
         ? '.'
         : '/';
 
@@ -785,7 +785,7 @@ class _TemplateMultiplicationBrainState
                 height: headerSize,
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    color: Colors.grey.shade300,
                     border: Border.all(color: Colors.grey.shade500),
                   ),
                   alignment: Alignment.center,
@@ -1018,7 +1018,7 @@ class _TemplateMultiplicationBrainState
             children: [
               TableRow(
                 children: [
-                  Container(height: cellSize, color: Colors.grey.shade200),
+                  Container(height: cellSize, color: Colors.grey.shade300),
                   for (int c = 0; c < 10; c++)
                     Container(
                       height: cellSize,
@@ -1259,7 +1259,7 @@ class _TemplateMultiplicationBrainState
                         Container(
                           height: cellSize,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
+                            color: Colors.grey.shade300,
                             border: Border.all(color: Colors.grey.shade400),
                           ),
                         ),
