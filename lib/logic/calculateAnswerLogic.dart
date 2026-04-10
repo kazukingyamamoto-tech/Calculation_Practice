@@ -30,6 +30,8 @@ String calculateAnswer(AxisItem row, AxisItem col, String mode) {
       } else {
         return "Error"; // ゼロ除算のエラー
       }
+    case "分数の足し算":
+      return _fractionAdditionCalculate(row, col);
     case "わり算（小数）":
     case "割り算（小数）":
     case "上級のわり算（小数）":
@@ -80,6 +82,61 @@ String _divisionCalculate(int b, int a) {
     b ~/= gcd;
     return "$a/$b";
   }
+}
+
+String _fractionAdditionCalculate(AxisItem left, AxisItem right) {
+  final leftFraction = _parseFraction(left.displayText);
+  final rightFraction = _parseFraction(right.displayText);
+  if (leftFraction == null || rightFraction == null) {
+    return "Error";
+  }
+
+  final a = leftFraction.$1;
+  final b = leftFraction.$2;
+  final c = rightFraction.$1;
+  final d = rightFraction.$2;
+
+  final numerator = (a * d) + (c * b);
+  final denominator = b * d;
+  if (denominator == 0) {
+    return "Error";
+  }
+
+  final gcd = _gcd(numerator.abs(), denominator.abs());
+  final reducedNumerator = numerator ~/ gcd;
+  final reducedDenominator = denominator ~/ gcd;
+
+  if (reducedDenominator == 1) {
+    return reducedNumerator.toString();
+  }
+  return "$reducedNumerator/$reducedDenominator";
+}
+
+(int, int)? _parseFraction(String text) {
+  final trimmed = text.trim();
+  if (trimmed.isEmpty) {
+    return null;
+  }
+
+  if (!trimmed.contains('/')) {
+    final integerValue = int.tryParse(trimmed);
+    if (integerValue == null) {
+      return null;
+    }
+    return (integerValue, 1);
+  }
+
+  final parts = trimmed.split('/');
+  if (parts.length != 2) {
+    return null;
+  }
+
+  final numerator = int.tryParse(parts[0]);
+  final denominator = int.tryParse(parts[1]);
+  if (numerator == null || denominator == null || denominator == 0) {
+    return null;
+  }
+  return (numerator, denominator);
 }
 
 String _decimalMultiplicationCalculate(int scaledBy10, int multiplier) {

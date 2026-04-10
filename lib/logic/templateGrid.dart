@@ -175,6 +175,12 @@ class _TemplateMultiplicationBrainState
     List<int> rowRange = [for (int i = rMin; i <= rMax; i++) i];
     List<int> colRange = [for (int i = cMin; i <= cMax; i++) i];
 
+    if (widget.mode == "分数の足し算") {
+      rowNumbers = _buildFractionAxisItems(rowRange, random);
+      colNumbers = _buildFractionAxisItems(colRange, random);
+      return;
+    }
+
     // 2. 横・縦の数字を10個選ぶ（範囲が足りない場合は重複を許す）
     final selectedRows = _pickTenNumbers(rowRange, random);
     final selectedCols = _pickTenNumbers(colRange, random);
@@ -207,6 +213,23 @@ class _TemplateMultiplicationBrainState
       }
       return AxisItem(number: n, operator: op);
     }).toList();
+  }
+
+  List<AxisItem> _buildFractionAxisItems(List<int> source, Random random) {
+    final denominatorPool = source.where((n) => n >= 2).toList();
+    if (denominatorPool.isEmpty) {
+      denominatorPool.addAll([2, 3, 4, 5, 6, 7, 8, 9]);
+    }
+
+    return List.generate(10, (_) {
+      final denominator =
+          denominatorPool[random.nextInt(denominatorPool.length)];
+      final numerator = random.nextInt(denominator - 1) + 1;
+      return AxisItem(
+        number: numerator,
+        displayOverride: '$numerator/$denominator',
+      );
+    });
   }
 
   List<int> _pickTenNumbers(List<int> source, Random random) {

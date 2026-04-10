@@ -76,6 +76,12 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         _colMinCtrl.text = "24";
         _colMaxCtrl.text = "40"; // 1の段は簡単すぎるので2〜9など
         break;
+      case '分数の足し算':
+        _rowMinCtrl.text = "2";
+        _rowMaxCtrl.text = "9";
+        _colMinCtrl.text = "2";
+        _colMaxCtrl.text = "9";
+        break;
       case 'かけ算（小数）':
         _rowMinCtrl.text = "11";
         _rowMaxCtrl.text = "99";
@@ -131,7 +137,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
   late final List<GameMode> _modes = [
     GameMode(
       title: "普通のかけ算",
-      description: "一桁×一桁の基本的な100マス計算。\nまずはスピードと正確さを極めよう！",
+      description: "一桁×一桁の100マス計算。\nまずは九九を正確に極めよう！",
       icon: Icons.grid_on,
       color: Colors.redAccent,
       imagePath: "assets/mode_1.png",
@@ -263,6 +269,22 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         colMin: 2,
         colMax: 11,
         mode: "ミックス計算",
+        manualInputMode: isManualInputMode,
+      ),
+    ),
+    GameMode(
+      title: "分数の足し算",
+      description:
+          "分数 + 分数 の計算に挑戦！\n通分して足し算し、\n約分にも注意して答えよう！\n（手入力では 分子/分母 で入力）",
+      icon: Icons.exposure_plus_1,
+      color: Colors.teal,
+      imagePath: "assets/mode_13.png",
+      onStart: (context, isManualInputMode) => TemplateMultiplication(
+        rowMin: 2,
+        rowMax: 9,
+        colMin: 2,
+        colMax: 9,
+        mode: "分数の足し算",
         manualInputMode: isManualInputMode,
       ),
     ),
@@ -553,6 +575,22 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
     );
   }
 
+  double _descriptionFontSize(String description) {
+    final compact = description.replaceAll('\n', '').replaceAll(' ', '');
+    final length = compact.length;
+
+    if (length <= 26) {
+      return 19;
+    }
+    if (length <= 40) {
+      return 18;
+    }
+    if (length <= 58) {
+      return 17;
+    }
+    return 16;
+  }
+
   // --- カード中身（通常） ---
   Widget _buildNormalCard(GameMode mode) {
     return Padding(
@@ -584,8 +622,8 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
                     textAlign: TextAlign.center,
                     maxLines: 5,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: TextStyle(
+                      fontSize: _descriptionFontSize(mode.description),
                       height: 1.5,
                       color: Colors.white,
                     ),
@@ -671,6 +709,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
                   [
                         '普通のかけ算',
                         'わり算（分数）',
+                        '分数の足し算',
                         'わり算（小数）',
                         '上級のわり算（小数）',
                         'ミックス計算',
