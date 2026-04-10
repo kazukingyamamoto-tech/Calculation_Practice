@@ -273,7 +273,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
       ),
     ),
     GameMode(
-      title: "分数の引き算",
+      title: "分数の足し算",
       description:
           "分数 + 分数 の計算に挑戦！\n通分して足し算し、\n約分にも注意して答えよう！\n（手入力では 分子/分母 で入力）",
       icon: Icons.exposure_plus_1,
