@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'selectModeScreen.dart';
 import 'recordScreen.dart';
 import 'settingsScreen.dart';
@@ -11,6 +13,36 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  BannerAd? _bannerAd;
+  bool _isBannerAdReady = false;
+  InterstitialAd? _interstitialAd;
+
+  String get _bannerAdUnitId {
+    if (kIsWeb) {
+      return 'ca-app-pub-3940256099942544/6300978111';
+    }
+
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        return 'ca-app-pub-3940256099942544/6300978111';
+      case TargetPlatform.iOS:
+        return 'ca-app-pub-3940256099942544/2934735716';
+      default:
+        return 'ca-app-pub-3940256099942544/6300978111';
+    }
+  }
+
+  String get _interstitialAdUnitId {
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        return 'ca-app-pub-3940256099942544/1033173712';
+      case TargetPlatform.iOS:
+        return 'ca-app-pub-3940256099942544/4411468910';
+      default:
+        return 'ca-app-pub-3940256099942544/1033173712';
+    }
+  }
+
   final List<String> _tutorialNormalImages = [
     'assets/usual_1.png',
     'assets/usual_2.png',
@@ -38,6 +70,98 @@ class _MyHomePageState extends State<MyHomePage> {
     '答え合わせを押すと自動で採点！\n（答えを見るボタンから正解が見よう！）',
     '正解できた数を確認したら、\n名前を入力して、記録を保存しよう！',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBannerAd();
+    _loadInterstitialAd();
+  }
+
+  void _loadBannerAd() {
+    final ad = BannerAd(
+      adUnitId: _bannerAdUnitId,
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          if (!mounted) {
+            ad.dispose();
+            return;
+          }
+          setState(() {
+            _bannerAd = ad as BannerAd;
+            _isBannerAdReady = true;
+          });
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+        },
+      ),
+    );
+
+    ad.load();
+  }
+
+  void _loadInterstitialAd() {
+    if (kIsWeb) {
+      return;
+    }
+
+    InterstitialAd.load(
+      adUnitId: _interstitialAdUnitId,
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          _interstitialAd = ad;
+        },
+        onAdFailedToLoad: (error) {
+          _interstitialAd = null;
+        },
+      ),
+    );
+  }
+
+  void _showInterstitialThen(VoidCallback onAfterAd) {
+    final ad = _interstitialAd;
+    if (ad == null) {
+      onAfterAd();
+      _loadInterstitialAd();
+      return;
+    }
+
+    _interstitialAd = null;
+    var hasFinished = false;
+
+    void finishOnce() {
+      if (hasFinished) {
+        return;
+      }
+      hasFinished = true;
+      onAfterAd();
+      _loadInterstitialAd();
+    }
+
+    ad.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent: (ad) {
+        ad.dispose();
+        finishOnce();
+      },
+      onAdFailedToShowFullScreenContent: (ad, error) {
+        ad.dispose();
+        finishOnce();
+      },
+    );
+
+    ad.show();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    _interstitialAd?.dispose();
+    super.dispose();
+  }
 
   // 共通のボタン作成メソッド
   Widget _buildCustomButton({
@@ -264,6 +388,16 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: _isBannerAdReady && _bannerAd != null
+          ? SafeArea(
+              top: false,
+              child: SizedBox(
+                width: _bannerAd!.size.width.toDouble(),
+                height: _bannerAd!.size.height.toDouble(),
+                child: AdWidget(ad: _bannerAd!),
+              ),
+            )
+          : null,
       body: Container(
         width: double.infinity,
         // 背景のグラデーション
@@ -372,14 +506,16 @@ class _MyHomePageState extends State<MyHomePage> {
                                 color: Colors.white,
                               ),
                               text: '100マス練習をしよう',
-                              onPressed: () async {
-                                await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const SelectModeScreen(),
-                                  ),
-                                );
+                              onPressed: () {
+                                _showInterstitialThen(() {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const SelectModeScreen(),
+                                    ),
+                                  );
+                                });
                               },
                             ),
                           ),
@@ -405,12 +541,15 @@ class _MyHomePageState extends State<MyHomePage> {
                               ),
                               text: '記録を見る',
                               onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const RecordScreen(),
-                                  ),
-                                );
+                                _showInterstitialThen(() {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const RecordScreen(),
+                                    ),
+                                  );
+                                });
                               },
                             ),
                           ),

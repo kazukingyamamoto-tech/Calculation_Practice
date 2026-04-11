@@ -459,49 +459,83 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
                   // --- カテゴリ絞り込みドロップダウン ---
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Row(
-                      children: [
-                        const Text(
-                          '絞り込み: ',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF544275),
+                    child: Container(
+                      height: 60,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.82),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(
+                              0xFF544275,
+                            ).withValues(alpha: 0.2),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        DropdownButton<String>(
-                          value: _selectedCategory,
-                          isExpanded: false,
-                          icon: const Icon(
-                            Icons.arrow_drop_down,
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.filter_alt_rounded,
                             color: Color(0xFF544275),
+                            size: 26,
                           ),
-                          style: const TextStyle(
-                            color: Color(0xFF544275),
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                          const SizedBox(width: 8),
+                          const Text(
+                            '絞り込み',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF544275),
+                              fontSize: 18,
+                            ),
                           ),
-                          items: _categories
-                              .map(
-                                (cat) => DropdownMenuItem(
-                                  value: cat,
-                                  child: Text(cat),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: _selectedCategory,
+                                isExpanded: true,
+                                alignment: Alignment.centerLeft,
+                                icon: const Icon(
+                                  Icons.keyboard_arrow_down_rounded,
+                                  color: Color(0xFF544275),
+                                  size: 30,
                                 ),
-                              )
-                              .toList(),
-                          onChanged: (val) {
-                            if (val != null) {
-                              setState(() {
-                                _selectedCategory = val;
-                                _currentIndex = 0;
-                              });
-                              if (_pageController.hasClients) {
-                                _pageController.jumpToPage(0);
-                              }
-                            }
-                          },
-                        ),
-                      ],
+                                style: const TextStyle(
+                                  color: Color(0xFF544275),
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                                items: _categories
+                                    .map(
+                                      (cat) => DropdownMenuItem(
+                                        value: cat,
+                                        child: Text(cat),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (val) {
+                                  if (val != null) {
+                                    setState(() {
+                                      _selectedCategory = val;
+                                      _currentIndex = 0;
+                                    });
+                                    if (_pageController.hasClients) {
+                                      _pageController.jumpToPage(0);
+                                    }
+                                  }
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 10),
