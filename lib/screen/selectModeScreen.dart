@@ -843,7 +843,11 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
             ),
           ),
         ),
-        SizedBox(height: 50),
+        SizedBox(
+            height: (MediaQuery.of(context).size.height * 0.04)
+              .clamp(20.0, 48.0)
+              .toDouble(),
+        ),
       ],
     );
   }
