@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 import 'timer.dart';
 import '../screen/resultScreen.dart';
+import '../screen/widgets/adaptive_banner_bottom_bar.dart';
 import 'calculateAnswerLogic.dart';
 import 'grid_pdf_logic.dart';
 
@@ -1482,6 +1483,7 @@ class _TemplateMultiplicationBrainState
           foregroundColor: const Color(0xFF544275),
           iconTheme: const IconThemeData(color: Color(0xFF544275)),
         ),
+        bottomNavigationBar: const AdaptiveBannerBottomBar(),
         body: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(

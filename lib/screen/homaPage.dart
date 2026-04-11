@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../logic/ad_controllers.dart';
+import 'widgets/adaptive_banner_bottom_bar.dart';
 import 'selectModeScreen.dart';
 import 'recordScreen.dart';
 import 'settingsScreen.dart';
@@ -13,35 +13,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  BannerAd? _bannerAd;
-  bool _isBannerAdReady = false;
-  InterstitialAd? _interstitialAd;
-
-  String get _bannerAdUnitId {
-    if (kIsWeb) {
-      return 'ca-app-pub-3940256099942544/6300978111';
-    }
-
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-        return 'ca-app-pub-3940256099942544/6300978111';
-      case TargetPlatform.iOS:
-        return 'ca-app-pub-3940256099942544/2934735716';
-      default:
-        return 'ca-app-pub-3940256099942544/6300978111';
-    }
-  }
-
-  String get _interstitialAdUnitId {
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-        return 'ca-app-pub-3940256099942544/1033173712';
-      case TargetPlatform.iOS:
-        return 'ca-app-pub-3940256099942544/4411468910';
-      default:
-        return 'ca-app-pub-3940256099942544/1033173712';
-    }
-  }
+  late final InterstitialAdController _interstitialController;
 
   final List<String> _tutorialNormalImages = [
     'assets/usual_1.png',
@@ -74,92 +46,16 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _loadBannerAd();
-    _loadInterstitialAd();
-  }
-
-  void _loadBannerAd() {
-    final ad = BannerAd(
-      adUnitId: _bannerAdUnitId,
-      size: AdSize.banner,
-      request: const AdRequest(),
-      listener: BannerAdListener(
-        onAdLoaded: (ad) {
-          if (!mounted) {
-            ad.dispose();
-            return;
-          }
-          setState(() {
-            _bannerAd = ad as BannerAd;
-            _isBannerAdReady = true;
-          });
-        },
-        onAdFailedToLoad: (ad, error) {
-          ad.dispose();
-        },
-      ),
-    );
-
-    ad.load();
-  }
-
-  void _loadInterstitialAd() {
-    if (kIsWeb) {
-      return;
-    }
-
-    InterstitialAd.load(
-      adUnitId: _interstitialAdUnitId,
-      request: const AdRequest(),
-      adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) {
-          _interstitialAd = ad;
-        },
-        onAdFailedToLoad: (error) {
-          _interstitialAd = null;
-        },
-      ),
-    );
+    _interstitialController = InterstitialAdController()..load();
   }
 
   void _showInterstitialThen(VoidCallback onAfterAd) {
-    final ad = _interstitialAd;
-    if (ad == null) {
-      onAfterAd();
-      _loadInterstitialAd();
-      return;
-    }
-
-    _interstitialAd = null;
-    var hasFinished = false;
-
-    void finishOnce() {
-      if (hasFinished) {
-        return;
-      }
-      hasFinished = true;
-      onAfterAd();
-      _loadInterstitialAd();
-    }
-
-    ad.fullScreenContentCallback = FullScreenContentCallback(
-      onAdDismissedFullScreenContent: (ad) {
-        ad.dispose();
-        finishOnce();
-      },
-      onAdFailedToShowFullScreenContent: (ad, error) {
-        ad.dispose();
-        finishOnce();
-      },
-    );
-
-    ad.show();
+    _interstitialController.showThen(onAfterAd);
   }
 
   @override
   void dispose() {
-    _bannerAd?.dispose();
-    _interstitialAd?.dispose();
+    _interstitialController.dispose();
     super.dispose();
   }
 
@@ -388,16 +284,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: _isBannerAdReady && _bannerAd != null
-          ? SafeArea(
-              top: false,
-              child: SizedBox(
-                width: _bannerAd!.size.width.toDouble(),
-                height: _bannerAd!.size.height.toDouble(),
-                child: AdWidget(ad: _bannerAd!),
-              ),
-            )
-          : null,
+      bottomNavigationBar: const AdaptiveBannerBottomBar(),
       body: Container(
         width: double.infinity,
         // 背景のグラデーション

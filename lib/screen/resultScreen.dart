@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import '../logic/GameRecord.dart';
+import 'widgets/adaptive_banner_bottom_bar.dart';
 
 class ResultScreen extends StatefulWidget {
   final Duration timeTaken;
@@ -144,6 +145,7 @@ class _ResultScreenState extends State<ResultScreen> {
         foregroundColor: const Color(0xFF544275),
         iconTheme: const IconThemeData(color: Color(0xFF544275)),
       ),
+      bottomNavigationBar: const AdaptiveBannerBottomBar(),
       body: Container(
         width: double.infinity,
         height: double.infinity,

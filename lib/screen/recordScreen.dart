@@ -6,6 +6,7 @@ import '../logic/GameRecord.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:file_selector/file_selector.dart';
+import 'widgets/adaptive_banner_bottom_bar.dart';
 
 class RecordScreen extends StatefulWidget {
   const RecordScreen({super.key});
@@ -584,6 +585,7 @@ class _RecordScreenState extends State<RecordScreen> {
         foregroundColor: const Color(0xFF544275),
         iconTheme: const IconThemeData(color: Color(0xFF544275)),
       ),
+      bottomNavigationBar: const AdaptiveBannerBottomBar(),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(

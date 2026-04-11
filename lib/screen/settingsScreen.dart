@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'widgets/adaptive_banner_bottom_bar.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -58,6 +59,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Color(0xFF544275)),
       ),
+      bottomNavigationBar: const AdaptiveBannerBottomBar(),
       body: Container(
         width: double.infinity,
         height: double.infinity,

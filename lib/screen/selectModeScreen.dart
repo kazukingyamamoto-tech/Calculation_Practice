@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../logic/templateGrid.dart';
+import 'widgets/adaptive_banner_bottom_bar.dart';
 
 class GameMode {
   final String title;
@@ -421,6 +422,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
         foregroundColor: const Color(0xFF544275),
         iconTheme: const IconThemeData(color: Color(0xFF544275)),
       ),
+      bottomNavigationBar: const AdaptiveBannerBottomBar(),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -878,7 +880,7 @@ class _SelectModeScreenState extends State<SelectModeScreen> {
           ),
         ),
         SizedBox(
-            height: (MediaQuery.of(context).size.height * 0.04)
+          height: (MediaQuery.of(context).size.height * 0.04)
               .clamp(20.0, 48.0)
               .toDouble(),
         ),
