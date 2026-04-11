@@ -371,7 +371,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 size: 28,
                                 color: Colors.white,
                               ),
-                              text: '100マス練習をする',
+                              text: '100マス練習をしよう',
                               onPressed: () async {
                                 await Navigator.push(
                                   context,

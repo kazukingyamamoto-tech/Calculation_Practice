@@ -27,6 +27,34 @@ class MyApp extends StatelessWidget {
           baseTheme.primaryTextTheme,
         ),
       ),
+      builder: (context, child) {
+        if (child == null) {
+          return const SizedBox.shrink();
+        }
+
+        final mediaQuery = MediaQuery.of(context);
+        final size = mediaQuery.size;
+
+        // 横長で報告される端末でも、アプリ内部は常に縦長レイアウトで扱う。
+        if (size.height >= size.width) {
+          return child;
+        }
+
+        final portraitSize = Size(size.height, size.width);
+        return MediaQuery(
+          data: mediaQuery.copyWith(size: portraitSize),
+          child: Center(
+            child: RotatedBox(
+              quarterTurns: 1,
+              child: SizedBox(
+                width: portraitSize.width,
+                height: portraitSize.height,
+                child: child,
+              ),
+            ),
+          ),
+        );
+      },
       home: const MyHomePage(),
     );
   }
